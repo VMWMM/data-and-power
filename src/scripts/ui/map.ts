@@ -114,7 +114,7 @@ class DataCenterIcon extends MapIcon {
 }
 
 class EnergySourceIcon extends MapIcon {
-  declare modelObject!: MockEnergySource;
+  declare modelObject: MockEnergySource;
   constructor(energySource: MockEnergySource, mapManager: MapManager) {
     super(mapManager);
     this.modelObject = energySource;
@@ -138,7 +138,7 @@ class EnergySourceIcon extends MapIcon {
 
 class MockSimulation {
   dataCenters: MockDataCenter[];
-  energySources: MockDataCenter[];
+  energySources: MockEnergySource[];
   constructor() {
     this.dataCenters = [
       new MockDataCenter(new Leaf.LatLng(52, 13), "Data Center Berlin"),
