@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="57.066532mm"
+   height="72.00116mm"
+   viewBox="0 0 57.066532 72.00116"
+   version="1.1"
+   id="svg17945"
+   inkscape:version="1.1.2 (b8e25be833, 2022-02-05)"
+   sodipodi:docname="Wasser rechts.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview17947"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:zoom="0.7198092"
+     inkscape:cx="108.36205"
+     inkscape:cy="135.45256"
+     inkscape:window-width="1920"
+     inkscape:window-height="1001"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs17942" />
+  <g
+     inkscape:label="Ebene 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-76.592972,-112.68321)">
+    <path
+       id="path442-0-1-2"
+       style="fill:#00aa00;fill-opacity:1;stroke:#005500;stroke-width:1.503;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 77.442103,130.49144 -0.0966,36.40665 c 9.229169,6.54178 18.554949,10.33074 27.784117,16.87253 9.69058,-6.54179 18.08759,-10.33075 27.77818,-16.87253 l 2e-4,-36.46135 c -9.69127,-5.60793 -18.08985,-11.27193 -27.78111,-16.87987 -9.228478,5.60725 -18.456268,11.32733 -27.684747,16.93457 z"
+       sodipodi:nodetypes="cccccccc" />
+    <path
+       style="fill:#ffffff;fill-opacity:1;stroke:#ffffff;stroke-width:1.08063;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 105.11762,130.42754 c 0,0 -4.29948,8.59896 -8.598958,17.19791 -4.29948,8.59896 0,17.19792 8.598958,17.19792 8.59895,0 11.53577,-11.87382 8.59895,-17.19792 -3.3693,-6.10815 -6.48021,-8.85734 -8.59895,-17.19791"
+       id="path3086-6-5-7"
+       sodipodi:nodetypes="csssc" />
+    <path
+       style="fill:#00aa00;fill-opacity:1;stroke:#00aa00;stroke-width:0.264583px;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:markers fill stroke"
+       d="m 97.453262,151.67573 c 0,0 -2.11936,11.25456 8.915938,10.85261 0,0 -8.221668,-2.85019 -8.915938,-10.85261 z"
+       id="path8585-7" />
+  </g>
+</svg>

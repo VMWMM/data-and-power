@@ -154,6 +154,10 @@ class EnergySourceIcon extends MapIcon {
 
         return "/assets/wind.svg"
       }
+      case EnergySourceTypes.HYDRO: {
+
+        return "/assets/hydro.svg"
+      }
     }
   }
 }
@@ -169,8 +173,8 @@ class MockSimulation {
     ]
     this.energySources = [
       new MockEnergySource(new Leaf.LatLng(54.6, 7.2), "German Bay Offshore Wind Park", EnergySourceTypes.WIND),
-      new MockEnergySource(new Leaf.LatLng(47.3, 10.1), "Alpine Dams", EnergySourceTypes.WIND),
-      new MockEnergySource(new Leaf.LatLng(61.9, 7.1), "Norwegian Hydropower", EnergySourceTypes.WIND),
+      new MockEnergySource(new Leaf.LatLng(47.3, 10.1), "Alpine Dams", EnergySourceTypes.HYDRO),
+      new MockEnergySource(new Leaf.LatLng(61.9, 7.1), "Norwegian Hydropower", EnergySourceTypes.HYDRO),
       new MockEnergySource(new Leaf.LatLng(45.3, 1.6), "French Solar", EnergySourceTypes.SUN),
     ]
   }
@@ -187,7 +191,8 @@ export class MockDataCenter {
 
 enum EnergySourceTypes {
   SUN,
-  WIND
+  WIND,
+  HYDRO
 }
 
 export class MockEnergySource {
