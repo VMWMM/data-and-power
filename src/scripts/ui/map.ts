@@ -2,7 +2,7 @@ import * as Leaf from 'leaflet';
 
 class MapManager {
   map: Leaf.Map;
-  dataCenterIcons: DataCenterIcon[] | undefined;
+  dataCenterIcons!: DataCenterIcon[];
   simulation: MockSimulation;
   constructor() {
     this.map = new Leaf.Map('map', {
@@ -17,6 +17,7 @@ class MapManager {
       attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     }).addTo(this.map);
 
+    this.dataCenterIcons = [];
     this.simulation = new MockSimulation();
     this.initIcons();
 
@@ -25,6 +26,7 @@ class MapManager {
 
   initIcons() {
     this.dataCenterIcons = this.simulation.dataCenters.map(dc => new DataCenterIcon(dc, this));
+    this.dataCenterIcons.forEach(dci => dci.connect());
   }
 }
 
@@ -87,6 +89,7 @@ abstract class MapIcon {
 }
 
 class DataCenterIcon extends MapIcon {
+  lines: Leaf.Polyline[] | undefined;
   constructor(dataCenter: MockDataCenter, mapManager: MapManager) {
     super(mapManager);
     this.modelObject = dataCenter;
@@ -98,6 +101,14 @@ class DataCenterIcon extends MapIcon {
     return "/assets/hex.svg"
   }
 
+  connect() {
+    this.lines = this.mapManager.dataCenterIcons
+      .filter(dcI => dcI != this)
+      .map(dataCenterIcon =>
+        new Leaf.Polyline([dataCenterIcon.modelObject.position, this.modelObject.position])
+      );
+    this.lines.forEach(line => line.addTo(this.mapManager.map))
+  }
 }
 
 class MockSimulation {
