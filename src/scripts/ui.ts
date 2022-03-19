@@ -1,3 +1,6 @@
+const map = require("./ui/map.ts")
+
+
 /*
 let canvas = document.getElementById('map-canvas') as
   HTMLCanvasElement;

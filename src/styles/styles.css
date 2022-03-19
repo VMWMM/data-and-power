@@ -5,6 +5,7 @@
 #map {
   width: 80%;
   float: left;
+  height: 500px;
 }
 
 #control-bar {
