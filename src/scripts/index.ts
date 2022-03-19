@@ -1,3 +1,3 @@
 // Scripts
 
-const ui = require('./ui');
+const ui = require('./ui/ui');

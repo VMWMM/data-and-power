@@ -1,4 +1,4 @@
-const map = require("./ui/map.ts")
+const map = require("./map.ts")
 
 
 /*
