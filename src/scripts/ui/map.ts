@@ -208,7 +208,7 @@ export class MockDataCenter {
   }
 }
 
-enum EnergySourceTypes {
+export enum EnergySourceTypes {
   SUN,
   WIND,
   HYDRO
