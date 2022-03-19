@@ -1,4 +1,3 @@
-alert("Loaded successfully")
 /*
 let canvas = document.getElementById('map-canvas') as
   HTMLCanvasElement;

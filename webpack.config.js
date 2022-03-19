@@ -43,7 +43,6 @@ const config = {
   },
   output: {
     filename: "main.[hash].js",
-    publicPath: ASSET_PATH,
     path: basePath,
   },
   devtool: devMode ? "eval-source-map" : "none",
