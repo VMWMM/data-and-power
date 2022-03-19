@@ -1,37 +1,49 @@
-//const map = require("./map.ts")
-
-import { MapManager, MockDataCenter, MockPowerSource, PowerSourceTypes } from "./map";
+import { Datacenter, Powersource, PowersourceType, SimulationManager } from '../simulation';
+import { MapManager } from "./map";
 
 class UIManager {
+  simulationManager: SimulationManager;
   mapManager: MapManager;
   controlPanel: ControlPanel;
-  constructor() {
+
+  constructor(
+    simulationManager: SimulationManager
+  ) {
+    this.simulationManager = simulationManager;
     this.mapManager = new MapManager();
+    this.mapManager.setComponents(
+      this.simulationManager.datacenters,
+      this.simulationManager.powersources
+    );
+    this.mapManager.initIcons();
     this.controlPanel = new ControlPanel();
-    this.mapManager.onDataCenterPressed = ((dataCenter: MockDataCenter) => this.onDataCenterPressed(dataCenter))
-    this.mapManager.onPowerSourcePressed = ((powerSource: MockPowerSource) => this.onPowerSourcePressed(powerSource))
-  }
-  onDataCenterPressed(dataCenter: MockDataCenter) {
-    this.controlPanel.headline.innerHTML = dataCenter.name;
-    this.controlPanel.desc.innerHTML = `A data center.`;
-  }
-  onPowerSourcePressed(powerSource: MockPowerSource) {
-    this.controlPanel.headline.innerHTML = powerSource.name;
-    this.controlPanel.desc.innerHTML = `A source of ${this.getDescriptionForPowerSource(powerSource)} power.`;
+    this.mapManager.onDatacenterPressed = ((datacenter: Datacenter) => this.onDatacenterPressed(datacenter))
+    this.mapManager.onPowersourcePressed = ((powersource: Powersource) => this.onPowersourcePressed(powersource))
   }
 
-  getDescriptionForPowerSource(powerSource: MockPowerSource) {
-    switch (powerSource.type) {
-      case PowerSourceTypes.HYDRO: {
+  getDescriptionForPowerSource(powerSource: Powersource): string {
+    switch (powerSource.powerType) {
+      case PowersourceType.HYDRO: {
         return "hydroelectric"
       }
-      case PowerSourceTypes.SUN: {
+      case PowersourceType.SUN: {
         return "solar"
       }
-      case PowerSourceTypes.WIND: {
+      case PowersourceType.WIND: {
         return "wind"
       }
     }
+
+    return "INVALID POWER SOURCE";
+  }
+
+  onDatacenterPressed(datacenter: Datacenter) {
+    this.controlPanel.headline.innerHTML = datacenter.name;
+    this.controlPanel.desc.innerHTML = `A data center.`;
+  }
+  onPowersourcePressed(powersource: Powersource) {
+    this.controlPanel.headline.innerHTML = powersource.name;
+    this.controlPanel.desc.innerHTML = `A source of ${this.getDescriptionForPowerSource(powersource)} power.`;
   }
 }
 
@@ -44,4 +56,4 @@ class ControlPanel {
   }
 }
 
-new UIManager();
+export { UIManager };

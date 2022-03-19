@@ -1,36 +1,34 @@
 import * as Leaf from 'leaflet';
-import { antPath } from 'leaflet-ant-path';
+import { Datacenter, Powersource, PowersourceType } from '../simulation';
 
 export class MapManager {
   map: Leaf.Map;
-  dataCenterIcons!: DataCenterIcon[];
-  powerSourceIcons!: PowerSourceIcon[];
-  simulation: MockSimulation;
-  onDataCenterPressed: Function | undefined;
-  onPowerSourcePressed: Function | undefined;
+  datacenters!: Datacenter[];
+  powersources!: Powersource[];
+  datacenterIcons!: DatacenterIcon[];
+  powersourceIcons!: PowersourceIcon[];
+  onDatacenterPressed: Function | undefined;
+  onPowersourcePressed: Function | undefined;
   constructor() {
     this.map = new Leaf.Map('map', {
       center: new Leaf.LatLng(49.023, 13.271),
       zoom: 5,
     });
-
-
     const tileServerUrl = "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png";
-
     Leaf.tileLayer(tileServerUrl, {
       attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     }).addTo(this.map);
+  }
 
-    this.dataCenterIcons = [];
-    this.simulation = new MockSimulation();
-    this.initIcons();
-    this.map.on("click", event => console.log(event))
+  setComponents(datacenters: Datacenter[], powersources: Powersource[]) {
+    this.datacenters = datacenters;
+    this.powersources = powersources;
   }
 
   initIcons() {
-    this.dataCenterIcons = this.simulation.dataCenters.map(dc => new DataCenterIcon(dc, this));
-    this.powerSourceIcons = this.simulation.powerSources.map(es => new PowerSourceIcon(es, this));
-    this.dataCenterIcons.forEach(dci => dci.connect());
+    this.datacenterIcons = this.datacenters.map(dc => new DatacenterIcon(dc, this));
+    this.powersourceIcons = this.powersources.map(es => new PowersourceIcon(es, this));
+    this.datacenterIcons.forEach(dci => dci.connect());
   }
 }
 
@@ -38,7 +36,7 @@ abstract class MapIcon {
 
   marker: Leaf.Marker | undefined;
   overlay: Leaf.SVGOverlay | undefined;
-  modelObject!: MockDataCenter | MockPowerSource;
+  modelObject!: Datacenter | Powersource;
 
   mapManager: MapManager;
   constructor(mapManager: MapManager) {
@@ -62,8 +60,12 @@ abstract class MapIcon {
   }
 
   get bounds() {
-    let corner1 = new Leaf.LatLng(this.modelObject.position.lat - this.width / 2, this.modelObject.position.lng - this.height / 2);
-    let corner2 = new Leaf.LatLng(this.modelObject.position.lat + this.width / 2, this.modelObject.position.lng + this.height / 2);
+    let position = new Leaf.LatLng(
+      this.modelObject.position[0],
+      this.modelObject.position[1]
+    );
+    let corner1 = new Leaf.LatLng(position.lat - this.width / 2, position.lng - this.height / 2);
+    let corner2 = new Leaf.LatLng(position.lat + this.width / 2, position.lng + this.height / 2);
     return new Leaf.LatLngBounds(corner1, corner2);
   }
 
@@ -102,20 +104,19 @@ abstract class MapIcon {
   }
 }
 
-class DataCenterIcon extends MapIcon {
+class DatacenterIcon extends MapIcon {
   lines: Leaf.Polyline[] | undefined;
   powerLines!: Leaf.Polyline[];
-  declare modelObject: MockDataCenter;
-  constructor(dataCenter: MockDataCenter, mapManager: MapManager) {
+  declare modelObject: Datacenter;
+  constructor(datacenter: Datacenter, mapManager: MapManager) {
     super(mapManager);
-    this.modelObject = dataCenter;
-
+    this.modelObject = datacenter;
     this.createOverlay();
   }
 
   createEventListeners() {
     if (this.overlay) {
-      this.overlay.on("click", event => { Leaf.DomEvent.stopPropagation(event); if (this.mapManager.onDataCenterPressed) this.mapManager.onDataCenterPressed(this.modelObject) });
+      this.overlay.on("click", event => { Leaf.DomEvent.stopPropagation(event); if (this.mapManager.onDatacenterPressed) this.mapManager.onDatacenterPressed(this.modelObject) });
       this.overlay.on("mouseover", () => this.drawConnectionsWithPowerSources());
       this.overlay.on("mouseout", () => this.removeConnectionsWithPowerSources());
     }
@@ -126,16 +127,16 @@ class DataCenterIcon extends MapIcon {
   }
 
   connect() {
-    this.lines = this.mapManager.dataCenterIcons
+    this.lines = this.mapManager.datacenterIcons
       .filter(dcI => dcI != this)
-      .map(dataCenterIcon =>
-        antPath([dataCenterIcon.modelObject.position, this.modelObject.position], { color: "#0088AA" })
+      .map(datacenterIcon =>
+        new Leaf.Polyline([datacenterIcon.modelObject.position, this.modelObject.position], { color: "#0088AA" })
       );
     this.lines.forEach(line => line.addTo(this.mapManager.map));
   }
 
   addNodeSpecificLines(): void {
-    this.powerLines = this.modelObject.powerSources.map(powerSource => new Leaf.Polyline([powerSource.position, this.modelObject.position], { color: "#00AA00", interactive: false, opacity: 0 }));
+    this.powerLines = this.modelObject.powersources.map(powerSource => new Leaf.Polyline([powerSource.position, this.modelObject.position], { color: "#00AA00", interactive: false, opacity: 0 }));
     this.powerLines.forEach(line => line.addTo(this.mapManager.map));
   }
 
@@ -148,88 +149,34 @@ class DataCenterIcon extends MapIcon {
   }
 }
 
-class PowerSourceIcon extends MapIcon {
-  declare modelObject: MockPowerSource;
-  constructor(powerSource: MockPowerSource, mapManager: MapManager) {
+class PowersourceIcon extends MapIcon {
+  declare modelObject: Powersource;
+  constructor(powersource: Powersource, mapManager: MapManager) {
     super(mapManager);
-    this.modelObject = powerSource;
-
+    this.modelObject = powersource;
     this.createOverlay();
-
   }
 
   createEventListeners(): void {
     if (this.overlay) {
       this.overlay.on("click", event => {
         Leaf.DomEvent.stopPropagation(event);
-        if (this.mapManager.onPowerSourcePressed) this.mapManager.onPowerSourcePressed(this.modelObject)
+        if (this.mapManager.onPowersourcePressed) this.mapManager.onPowersourcePressed(this.modelObject)
       })
     }
   }
 
   get iconPath(): string {
-    switch (this.modelObject.type) {
-      case PowerSourceTypes.SUN: {
-
-        return "/assets/sun.svg"
+    var path: string = "";
+    switch (this.modelObject.powerType) {
+      case PowersourceType.SUN: {
+        path = "/assets/sun.svg"
       }
-      case PowerSourceTypes.WIND: {
-
-        return "/assets/wind.svg"
-      }
-      case PowerSourceTypes.HYDRO: {
-
-        return "/assets/hydro.svg"
+      case PowersourceType.WIND: {
+        path = "/assets/wind.svg"
       }
     }
-  }
-}
-
-class MockSimulation {
-  dataCenters: MockDataCenter[];
-  powerSources: MockPowerSource[];
-  constructor() {
-    this.powerSources = [
-      new MockPowerSource(new Leaf.LatLng(54.6, 7.2), "German Bay Offshore Wind Park", PowerSourceTypes.WIND),
-      new MockPowerSource(new Leaf.LatLng(47.3, 10.1), "Alpine Dams", PowerSourceTypes.HYDRO),
-      new MockPowerSource(new Leaf.LatLng(61.9, 7.1), "Norwegian Hydropower", PowerSourceTypes.HYDRO),
-      new MockPowerSource(new Leaf.LatLng(45.3, 1.6), "French Solar", PowerSourceTypes.SUN),
-      new MockPowerSource(new Leaf.LatLng(53.9, -3.57), "Walney Offshore Wind Farm", PowerSourceTypes.WIND),
-    ]
-    this.dataCenters = [
-      new MockDataCenter(new Leaf.LatLng(52, 13), "Data Center Berlin", [this.powerSources[2], this.powerSources[0]]),
-      new MockDataCenter(new Leaf.LatLng(48.8, 2.3), "Data Center Paris", [this.powerSources[1], this.powerSources[3]]),
-      new MockDataCenter(new Leaf.LatLng(53.3, -6.6), "Data Center Ireland", [this.powerSources[4]]),
-    ]
-
-  }
-}
-
-export class MockDataCenter {
-  position: Leaf.LatLng;
-  name: string;
-  powerSources: MockPowerSource[];
-  constructor(pos: Leaf.LatLng, name: string, powerSources: MockPowerSource[]) {
-    this.position = pos;
-    this.name = name;
-    this.powerSources = powerSources;
-  }
-}
-
-export enum PowerSourceTypes {
-  SUN,
-  WIND,
-  HYDRO
-}
-
-export class MockPowerSource {
-  position: Leaf.LatLng;
-  name: string;
-  type: PowerSourceTypes;
-  constructor(pos: Leaf.LatLng, name: string, type: PowerSourceTypes) {
-    this.position = pos;
-    this.name = name;
-    this.type = type;
+    return path;
   }
 }
 
