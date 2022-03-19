@@ -1,72 +1,87 @@
-const { CheckerPlugin } = require("awesome-typescript-loader");
-const { resolve, join, basename, dirname } = require("path");
-const pkg = require("./package.json");
+const path = require("path");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
+const CleanWebpackPlugin = require("clean-webpack-plugin");
+const OptimizeCssAssetsWebpackPlugin = require("optimize-css-assets-webpack-plugin")
+const webpack = require("webpack");
 
-const HOST = process.env.npm_package_config_host || pkg.config.host;
-const PORT = process.env.npm_package_config_port || pkg.config.port;
-const LIBRARY = process.env.npm_package_config_library || pkg.config.library;
-const MAIN = pkg.main;
-const FILENAME = basename(MAIN);
-const PATH = dirname(MAIN);
+const devMode = process.env.NODE_ENV !== "production";
+const basePath = path.resolve(__dirname, "dist");
 
-module.exports = {
-  mode: process.env.WEBPACK_SERVE ? "development" : "production",
+let plugins = [
+  new MiniCssExtractPlugin({
+    filename: "[name].[hash].css"
+  }),
+  new HtmlWebpackPlugin({
+    template: "./src/index.html"
+  }),
+  new OptimizeCssAssetsWebpackPlugin(),
+  new ForkTsCheckerWebpackPlugin(),
+  new CleanWebpackPlugin(),
+]
 
-  entry: {
-    loader: "./src/index.ts"
-  },
+const devPlugins = [
+  new webpack.HotModuleReplacementPlugin()
+]
 
-  output: {
-    filename: FILENAME,
-    path: join(__dirname, PATH),
-    publicPath: "/",
-    library: LIBRARY,
-    libraryTarget: "var",
-    globalObject: "this"
-  },
+if (devMode) {
+  plugins.concat(devPlugins);
+}
 
-  devtool: "source-map",
-
+const config = {
+  entry: [
+    "./src/scripts/index.ts",
+    "./src/styles/styles.css"
+  ],
   resolve: {
-    extensions: [".ts", ".tsx", ".js", ".jsx", ".json"]
+    extensions: ['.ts', '.js']
   },
-
+  output: {
+    filename: "main.[hash].js",
+    path: basePath,
+  },
+  devtool: devMode ? "eval-source-map" : "none",
+  plugins,
   module: {
     rules: [
       {
-        test: /\.worker\.tsx?$/,
-        loader: "worker-loader"
+        test: /\.ts$/,
+        use: [{
+          loader: "ts-loader",
+          options: { transpileOnly: true } // Typechecking done in separate thread via ForkTsChecker
+        }]
       },
       {
-        test: /\.tsx?$/,
-        loader: "awesome-typescript-loader",
-        exclude: resolve(__dirname, "node_modules"),
-        include: [resolve(__dirname, "src"), resolve(__dirname, "typings")]
-      },
-      {
-        enforce: "pre",
-        test: /\.js$/,
-        loader: "source-map-loader"
-      },
-      {
-        test: /\.(png|woff|woff2|eot|ttf|svg)$/,
+        test: /\.s[ac]ss$/,
         use: [
+          { loader: MiniCssExtractPlugin.loader },
           {
-            loader: "url-loader",
-            options: {
-              limit: 100000
-            }
-          }
+            loader: "css-loader",
+            options: { sourceMap: devMode }
+          },
+          {
+            loader: "sass-loader",
+            options: { sourceMap: devMode }
+          },
         ]
+      },
+      {
+        test: /\.(eot|ttf|otf|woff|woff2|svg)$/,
+        use: [{
+          loader: "file-loader",
+          options: {
+            outputPath: "./fonts/",
+            name: "[name].[ext]"
+          }
+        }]
       }
     ]
   },
-
-  plugins: [new CheckerPlugin()],
-
-  serve: {
-    host: HOST,
-    port: PORT,
-    content: [__dirname]
+  devServer: {
+    port: 1337,
+    hot: true
   }
-};
+}
+
+module.exports = config;
