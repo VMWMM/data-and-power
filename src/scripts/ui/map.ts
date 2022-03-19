@@ -3,6 +3,7 @@ import * as Leaf from 'leaflet';
 class MapManager {
   map: Leaf.Map;
   dataCenterIcons!: DataCenterIcon[];
+  energySourceIcons!: EnergySourceIcon[];
   simulation: MockSimulation;
   constructor() {
     this.map = new Leaf.Map('map', {
@@ -26,6 +27,7 @@ class MapManager {
 
   initIcons() {
     this.dataCenterIcons = this.simulation.dataCenters.map(dc => new DataCenterIcon(dc, this));
+    this.energySourceIcons = this.simulation.energySources.map(es => new EnergySourceIcon(es, this));
     this.dataCenterIcons.forEach(dci => dci.connect());
   }
 }
@@ -111,13 +113,43 @@ class DataCenterIcon extends MapIcon {
   }
 }
 
+class EnergySourceIcon extends MapIcon {
+  declare modelObject!: MockEnergySource;
+  constructor(energySource: MockEnergySource, mapManager: MapManager) {
+    super(mapManager);
+    this.modelObject = energySource;
+
+    this.createOverlay();
+  }
+
+  get iconPath(): string {
+    switch (this.modelObject.type) {
+      case EnergySourceTypes.SUN: {
+
+        return "/assets/sun.svg"
+      }
+      case EnergySourceTypes.WIND: {
+
+        return "/assets/wind.svg"
+      }
+    }
+  }
+}
+
 class MockSimulation {
   dataCenters: MockDataCenter[];
+  energySources: MockDataCenter[];
   constructor() {
     this.dataCenters = [
       new MockDataCenter(new Leaf.LatLng(52, 13), "Data Center Berlin"),
       new MockDataCenter(new Leaf.LatLng(48.8, 2.3), "Data Center Paris"),
       new MockDataCenter(new Leaf.LatLng(53.3, -6.6), "Data Center Ireland"),
+    ]
+    this.energySources = [
+      new MockEnergySource(new Leaf.LatLng(54.6, 7.2), "German Bay Offshore Wind Park", EnergySourceTypes.WIND),
+      new MockEnergySource(new Leaf.LatLng(47.3, 10.1), "Alpine Dams", EnergySourceTypes.WIND),
+      new MockEnergySource(new Leaf.LatLng(61.9, 7.1), "Norwegian Hydropower", EnergySourceTypes.WIND),
+      new MockEnergySource(new Leaf.LatLng(45.3, 1.6), "French Solar", EnergySourceTypes.SUN),
     ]
   }
 }
@@ -131,12 +163,19 @@ class MockDataCenter {
   }
 }
 
+enum EnergySourceTypes {
+  SUN,
+  WIND
+}
+
 class MockEnergySource {
   position: Leaf.LatLng;
   name: string;
-  constructor(pos: Leaf.LatLng, name: string) {
+  type: EnergySourceTypes;
+  constructor(pos: Leaf.LatLng, name: string, type: EnergySourceTypes) {
     this.position = pos;
     this.name = name;
+    this.type = type;
   }
 }
 
