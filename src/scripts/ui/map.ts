@@ -23,8 +23,7 @@ export class MapManager {
     this.dataCenterIcons = [];
     this.simulation = new MockSimulation();
     this.initIcons();
-
-    //this.map.on("click", (evt) => console.log("Clicked on map ", evt))
+    this.map.on("click", event => console.log(event))
   }
 
   initIcons() {
@@ -98,6 +97,8 @@ abstract class MapIcon {
 
 class DataCenterIcon extends MapIcon {
   lines: Leaf.Polyline[] | undefined;
+  powerLines: Leaf.Polyline[] | undefined;
+  declare modelObject: MockDataCenter;
   constructor(dataCenter: MockDataCenter, mapManager: MapManager) {
     super(mapManager);
     this.modelObject = dataCenter;
@@ -108,6 +109,8 @@ class DataCenterIcon extends MapIcon {
   createEventListeners() {
     if (this.overlay) {
       this.overlay.on("click", event => { Leaf.DomEvent.stopPropagation(event); if (this.mapManager.onDataCenterPressed) this.mapManager.onDataCenterPressed(this.modelObject) });
+      this.overlay.on("mouseover", () => this.drawConnectionsWithPowerSources());
+      this.overlay.on("mouseout", () => this.removeConnectionsWithPowerSources());
     }
   }
 
@@ -121,7 +124,19 @@ class DataCenterIcon extends MapIcon {
       .map(dataCenterIcon =>
         new Leaf.Polyline([dataCenterIcon.modelObject.position, this.modelObject.position], { color: "#0088AA" })
       );
-    this.lines.forEach(line => line.addTo(this.mapManager.map))
+    this.lines.forEach(line => line.addTo(this.mapManager.map));
+  }
+
+  drawConnectionsWithPowerSources() {
+    this.powerLines = this.modelObject.energySources.map(powerSource => new Leaf.Polyline([powerSource.position, this.modelObject.position], { color: "#00AA00" }));
+    this.powerLines.forEach(line => line.addTo(this.mapManager.map));
+  }
+
+  removeConnectionsWithPowerSources() {
+    if (this.powerLines) {
+      this.powerLines.forEach(powerLine => powerLine.remove());
+      this.powerLines = [];
+    }
   }
 }
 
@@ -166,26 +181,30 @@ class MockSimulation {
   dataCenters: MockDataCenter[];
   energySources: MockEnergySource[];
   constructor() {
-    this.dataCenters = [
-      new MockDataCenter(new Leaf.LatLng(52, 13), "Data Center Berlin"),
-      new MockDataCenter(new Leaf.LatLng(48.8, 2.3), "Data Center Paris"),
-      new MockDataCenter(new Leaf.LatLng(53.3, -6.6), "Data Center Ireland"),
-    ]
     this.energySources = [
       new MockEnergySource(new Leaf.LatLng(54.6, 7.2), "German Bay Offshore Wind Park", EnergySourceTypes.WIND),
       new MockEnergySource(new Leaf.LatLng(47.3, 10.1), "Alpine Dams", EnergySourceTypes.HYDRO),
       new MockEnergySource(new Leaf.LatLng(61.9, 7.1), "Norwegian Hydropower", EnergySourceTypes.HYDRO),
       new MockEnergySource(new Leaf.LatLng(45.3, 1.6), "French Solar", EnergySourceTypes.SUN),
+      new MockEnergySource(new Leaf.LatLng(53.9, -3.57), "Walney Offshore Wind Farm", EnergySourceTypes.WIND),
     ]
+    this.dataCenters = [
+      new MockDataCenter(new Leaf.LatLng(52, 13), "Data Center Berlin", [this.energySources[2], this.energySources[0]]),
+      new MockDataCenter(new Leaf.LatLng(48.8, 2.3), "Data Center Paris", [this.energySources[1], this.energySources[3]]),
+      new MockDataCenter(new Leaf.LatLng(53.3, -6.6), "Data Center Ireland", [this.energySources[4]]),
+    ]
+
   }
 }
 
 export class MockDataCenter {
   position: Leaf.LatLng;
   name: string;
-  constructor(pos: Leaf.LatLng, name: string) {
+  energySources: MockEnergySource[];
+  constructor(pos: Leaf.LatLng, name: string, energySources: MockEnergySource[]) {
     this.position = pos;
     this.name = name;
+    this.energySources = energySources;
   }
 }
 
