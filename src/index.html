@@ -10,12 +10,26 @@
 <body>
     <div id="game-board">
         <div id="map">
-            <img src="https://www.nationsonline.org/maps/countries_europe_map-L.jpg">
+            <canvas id="map-canvas"></canvas> <!-- Remove the image, canvas is probably the way to go-->
+            <img id="map-image" src="/assets/1024px-BlankMap-Europe_no_boundaries.svg.png" width="300" height="300">
         </div>
         <div id="control-bar">
-            <p>Lorem Ipsum</p>
+            <h4>Datacenter Munich</h4>
+            <p>List of tasks</p>
+            <ul>
+                <li>Task 1</li>
+                <li>Task 2</li>
+                <li>Task 3</li>
+
+            </ul>
+            <p>Available Energy: 100MW</p>
+            <p>Used Energy: 50MW</p>
         </div>
     </div>
+    <div style="display:none;">
+
+    </div>
+
 </body>
 
 </html>

@@ -8,6 +8,7 @@ const webpack = require("webpack");
 
 const devMode = process.env.NODE_ENV !== "production";
 const basePath = path.resolve(__dirname, "dist");
+const ASSET_PATH = process.env.ASSET_PATH || 'assets';
 
 let plugins = [
   new MiniCssExtractPlugin({
@@ -19,6 +20,9 @@ let plugins = [
   new OptimizeCssAssetsWebpackPlugin(),
   new ForkTsCheckerWebpackPlugin(),
   new CleanWebpackPlugin(),
+  new webpack.DefinePlugin({
+    'process.env.ASSET_PATH': JSON.stringify(ASSET_PATH),
+  }),
 ]
 
 const devPlugins = [
@@ -39,6 +43,7 @@ const config = {
   },
   output: {
     filename: "main.[hash].js",
+    publicPath: ASSET_PATH,
     path: basePath,
   },
   devtool: devMode ? "eval-source-map" : "none",
