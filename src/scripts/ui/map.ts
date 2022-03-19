@@ -1,36 +1,34 @@
 import * as Leaf from 'leaflet';
+import { Datacenter, Powersource, PowersourceType } from '../simulation';
 
 export class MapManager {
   map: Leaf.Map;
-  dataCenterIcons!: DataCenterIcon[];
-  energySourceIcons!: EnergySourceIcon[];
-  simulation: MockSimulation;
-  onDataCenterPressed: Function | undefined;
-  onEnergySourcePressed: Function | undefined;
+  datacenters!: Datacenter[];
+  powersources!: Powersource[];
+  datacenterIcons!: DatacenterIcon[];
+  powersourceIcons!: PowersourceIcon[];
+  onDatacenterPressed: Function | undefined;
+  onPowersourcePressed: Function | undefined;
   constructor() {
     this.map = new Leaf.Map('map', {
       center: new Leaf.LatLng(49.023, 13.271),
       zoom: 5,
     });
-
-
     const tileServerUrl = "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png";
-
     Leaf.tileLayer(tileServerUrl, {
       attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     }).addTo(this.map);
+  }
 
-    this.dataCenterIcons = [];
-    this.simulation = new MockSimulation();
-    this.initIcons();
-
-    //this.map.on("click", (evt) => console.log("Clicked on map ", evt))
+  setComponents(datacenters: Datacenter[], powersources: Powersource[]) {
+    this.datacenters = datacenters;
+    this.powersources = powersources;
   }
 
   initIcons() {
-    this.dataCenterIcons = this.simulation.dataCenters.map(dc => new DataCenterIcon(dc, this));
-    this.energySourceIcons = this.simulation.energySources.map(es => new EnergySourceIcon(es, this));
-    this.dataCenterIcons.forEach(dci => dci.connect());
+    this.datacenterIcons = this.datacenters.map(dc => new DatacenterIcon(dc, this));
+    this.powersourceIcons = this.powersources.map(es => new PowersourceIcon(es, this));
+    this.datacenterIcons.forEach(dci => dci.connect());
   }
 }
 
@@ -38,7 +36,7 @@ abstract class MapIcon {
 
   marker: Leaf.Marker | undefined;
   overlay: Leaf.SVGOverlay | undefined;
-  modelObject!: MockDataCenter | MockEnergySource;
+  modelObject!: Datacenter | Powersource;
 
   mapManager: MapManager;
   constructor(mapManager: MapManager) {
@@ -62,8 +60,12 @@ abstract class MapIcon {
   }
 
   get bounds() {
-    let corner1 = new Leaf.LatLng(this.modelObject.position.lat - this.width / 2, this.modelObject.position.lng - this.height / 2);
-    let corner2 = new Leaf.LatLng(this.modelObject.position.lat + this.width / 2, this.modelObject.position.lng + this.height / 2);
+    let position = new Leaf.LatLng(
+      this.modelObject.position[0], 
+      this.modelObject.position[1]
+    );
+    let corner1 = new Leaf.LatLng(position.lat - this.width / 2, position.lng - this.height / 2);
+    let corner2 = new Leaf.LatLng(position.lat + this.width / 2, position.lng + this.height / 2);
     return new Leaf.LatLngBounds(corner1, corner2);
   }
 
@@ -96,18 +98,17 @@ abstract class MapIcon {
   }
 }
 
-class DataCenterIcon extends MapIcon {
+class DatacenterIcon extends MapIcon {
   lines: Leaf.Polyline[] | undefined;
-  constructor(dataCenter: MockDataCenter, mapManager: MapManager) {
+  constructor(datacenter: Datacenter, mapManager: MapManager) {
     super(mapManager);
-    this.modelObject = dataCenter;
-
+    this.modelObject = datacenter;
     this.createOverlay();
   }
 
   createEventListeners() {
     if (this.overlay) {
-      this.overlay.on("click", event => { Leaf.DomEvent.stopPropagation(event); if (this.mapManager.onDataCenterPressed) this.mapManager.onDataCenterPressed(this.modelObject) });
+      this.overlay.on("click", event => { Leaf.DomEvent.stopPropagation(event); if (this.mapManager.onDatacenterPressed) this.mapManager.onDatacenterPressed(this.modelObject) });
     }
   }
 
@@ -116,88 +117,43 @@ class DataCenterIcon extends MapIcon {
   }
 
   connect() {
-    this.lines = this.mapManager.dataCenterIcons
+    this.lines = this.mapManager.datacenterIcons
       .filter(dcI => dcI != this)
-      .map(dataCenterIcon =>
-        new Leaf.Polyline([dataCenterIcon.modelObject.position, this.modelObject.position])
+      .map(datacenterIcon =>
+        new Leaf.Polyline([datacenterIcon.modelObject.position, this.modelObject.position])
       );
     this.lines.forEach(line => line.addTo(this.mapManager.map))
   }
 }
 
-class EnergySourceIcon extends MapIcon {
-  declare modelObject: MockEnergySource;
-  constructor(energySource: MockEnergySource, mapManager: MapManager) {
+class PowersourceIcon extends MapIcon {
+  declare modelObject: Powersource;
+  constructor(powersource: Powersource, mapManager: MapManager) {
     super(mapManager);
-    this.modelObject = energySource;
-
+    this.modelObject = powersource;
     this.createOverlay();
-
   }
 
   createEventListeners(): void {
     if (this.overlay) {
       this.overlay.on("click", event => {
         Leaf.DomEvent.stopPropagation(event);
-        if (this.mapManager.onEnergySourcePressed) this.mapManager.onEnergySourcePressed(this.modelObject)
+        if (this.mapManager.onPowersourcePressed) this.mapManager.onPowersourcePressed(this.modelObject)
       })
     }
   }
 
   get iconPath(): string {
-    switch (this.modelObject.type) {
-      case EnergySourceTypes.SUN: {
-
-        return "/assets/sun.svg"
+    var path: string = "";
+    switch (this.modelObject.powerType) {
+      case PowersourceType.SUN: {
+        path = "/assets/sun.svg"
       }
-      case EnergySourceTypes.WIND: {
-
-        return "/assets/wind.svg"
+      case PowersourceType.WIND: {
+        path = "/assets/wind.svg"
       }
     }
-  }
-}
-
-class MockSimulation {
-  dataCenters: MockDataCenter[];
-  energySources: MockEnergySource[];
-  constructor() {
-    this.dataCenters = [
-      new MockDataCenter(new Leaf.LatLng(52, 13), "Data Center Berlin"),
-      new MockDataCenter(new Leaf.LatLng(48.8, 2.3), "Data Center Paris"),
-      new MockDataCenter(new Leaf.LatLng(53.3, -6.6), "Data Center Ireland"),
-    ]
-    this.energySources = [
-      new MockEnergySource(new Leaf.LatLng(54.6, 7.2), "German Bay Offshore Wind Park", EnergySourceTypes.WIND),
-      new MockEnergySource(new Leaf.LatLng(47.3, 10.1), "Alpine Dams", EnergySourceTypes.WIND),
-      new MockEnergySource(new Leaf.LatLng(61.9, 7.1), "Norwegian Hydropower", EnergySourceTypes.WIND),
-      new MockEnergySource(new Leaf.LatLng(45.3, 1.6), "French Solar", EnergySourceTypes.SUN),
-    ]
-  }
-}
-
-export class MockDataCenter {
-  position: Leaf.LatLng;
-  name: string;
-  constructor(pos: Leaf.LatLng, name: string) {
-    this.position = pos;
-    this.name = name;
-  }
-}
-
-enum EnergySourceTypes {
-  SUN,
-  WIND
-}
-
-export class MockEnergySource {
-  position: Leaf.LatLng;
-  name: string;
-  type: EnergySourceTypes;
-  constructor(pos: Leaf.LatLng, name: string, type: EnergySourceTypes) {
-    this.position = pos;
-    this.name = name;
-    this.type = type;
+    return path;
   }
 }
 

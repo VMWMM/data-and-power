@@ -1,20 +1,28 @@
-//const map = require("./map.ts")
-
-import { MapManager, MockDataCenter, MockEnergySource } from "./map";
+import { Datacenter, Powersource, SimulationManager } from '../simulation';
+import { MapManager } from "./map";
 
 class UIManager {
+  simulationManager: SimulationManager;
   mapManager: MapManager;
   controlPanel: ControlPanel;
-  constructor() {
-    this.mapManager = new MapManager();
-    this.controlPanel = new ControlPanel();
-    this.mapManager.onDataCenterPressed = ((dataCenter: MockDataCenter) => this.onDataCenterPressed(dataCenter))
-    this.mapManager.onEnergySourcePressed = ((energySource: MockEnergySource) => this.onDataCenterPressed(energySource))
+  constructor(
+      simulationManager: SimulationManager
+    ) {
+      this.simulationManager = simulationManager;
+      this.mapManager = new MapManager();
+      this.mapManager.setComponents(
+        this.simulationManager.datacenters, 
+        this.simulationManager.powersources
+      );
+      this.mapManager.initIcons();
+      this.controlPanel = new ControlPanel();
+      this.mapManager.onDatacenterPressed = ((datacenter: Datacenter) => this.onDataCenterPressed(datacenter))
+      this.mapManager.onPowersourcePressed = ((powersource: Powersource) => this.onPowersourcePressed(powersource))
   }
-  onDataCenterPressed(dataCenter: MockDataCenter) {
-    this.controlPanel.headline.innerHTML = dataCenter.name;
+  onDataCenterPressed(datacenter: Datacenter) {
+    this.controlPanel.headline.innerHTML = datacenter.name;
   }
-  onEnergySourcePressed(energySource: MockEnergySource) {
+  onPowersourcePressed(energySource: Powersource) {
     this.controlPanel.headline.innerHTML = energySource.name;
   }
 }
@@ -23,8 +31,7 @@ class ControlPanel {
   headline: HTMLElement;
   constructor() {
     this.headline = document.getElementById("control-bar-headline")!;
-
   }
 }
 
-new UIManager();
+export { UIManager };
