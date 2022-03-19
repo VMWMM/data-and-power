@@ -53,15 +53,11 @@ const config = {
         }]
       },
       {
-        test: /\.s[ac]ss$/,
+        test: /\.css$/,
         use: [
           { loader: MiniCssExtractPlugin.loader },
           {
             loader: "css-loader",
-            options: { sourceMap: devMode }
-          },
-          {
-            loader: "sass-loader",
             options: { sourceMap: devMode }
           },
         ]

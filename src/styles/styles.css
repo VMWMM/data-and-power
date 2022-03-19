@@ -1,0 +1,12 @@
+#game-board {
+  overflow: hidden;
+}
+
+#map {
+  width: 80%;
+  float: left;
+}
+
+#control-bar {
+  overflow: hidden;
+}
