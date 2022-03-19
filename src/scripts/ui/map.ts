@@ -3,10 +3,10 @@ import * as Leaf from 'leaflet';
 export class MapManager {
   map: Leaf.Map;
   dataCenterIcons!: DataCenterIcon[];
-  energySourceIcons!: EnergySourceIcon[];
+  powerSourceIcons!: PowerSourceIcon[];
   simulation: MockSimulation;
   onDataCenterPressed: Function | undefined;
-  onEnergySourcePressed: Function | undefined;
+  onPowerSourcePressed: Function | undefined;
   constructor() {
     this.map = new Leaf.Map('map', {
       center: new Leaf.LatLng(49.023, 13.271),
@@ -28,7 +28,7 @@ export class MapManager {
 
   initIcons() {
     this.dataCenterIcons = this.simulation.dataCenters.map(dc => new DataCenterIcon(dc, this));
-    this.energySourceIcons = this.simulation.energySources.map(es => new EnergySourceIcon(es, this));
+    this.powerSourceIcons = this.simulation.powerSources.map(es => new PowerSourceIcon(es, this));
     this.dataCenterIcons.forEach(dci => dci.connect());
   }
 }
@@ -37,7 +37,7 @@ abstract class MapIcon {
 
   marker: Leaf.Marker | undefined;
   overlay: Leaf.SVGOverlay | undefined;
-  modelObject!: MockDataCenter | MockEnergySource;
+  modelObject!: MockDataCenter | MockPowerSource;
 
   mapManager: MapManager;
   constructor(mapManager: MapManager) {
@@ -128,7 +128,7 @@ class DataCenterIcon extends MapIcon {
   }
 
   drawConnectionsWithPowerSources() {
-    this.powerLines = this.modelObject.energySources.map(powerSource => new Leaf.Polyline([powerSource.position, this.modelObject.position], { color: "#00AA00" }));
+    this.powerLines = this.modelObject.powerSources.map(powerSource => new Leaf.Polyline([powerSource.position, this.modelObject.position], { color: "#00AA00" }));
     this.powerLines.forEach(line => line.addTo(this.mapManager.map));
   }
 
@@ -140,11 +140,11 @@ class DataCenterIcon extends MapIcon {
   }
 }
 
-class EnergySourceIcon extends MapIcon {
-  declare modelObject: MockEnergySource;
-  constructor(energySource: MockEnergySource, mapManager: MapManager) {
+class PowerSourceIcon extends MapIcon {
+  declare modelObject: MockPowerSource;
+  constructor(powerSource: MockPowerSource, mapManager: MapManager) {
     super(mapManager);
-    this.modelObject = energySource;
+    this.modelObject = powerSource;
 
     this.createOverlay();
 
@@ -154,22 +154,22 @@ class EnergySourceIcon extends MapIcon {
     if (this.overlay) {
       this.overlay.on("click", event => {
         Leaf.DomEvent.stopPropagation(event);
-        if (this.mapManager.onEnergySourcePressed) this.mapManager.onEnergySourcePressed(this.modelObject)
+        if (this.mapManager.onPowerSourcePressed) this.mapManager.onPowerSourcePressed(this.modelObject)
       })
     }
   }
 
   get iconPath(): string {
     switch (this.modelObject.type) {
-      case EnergySourceTypes.SUN: {
+      case PowerSourceTypes.SUN: {
 
         return "/assets/sun.svg"
       }
-      case EnergySourceTypes.WIND: {
+      case PowerSourceTypes.WIND: {
 
         return "/assets/wind.svg"
       }
-      case EnergySourceTypes.HYDRO: {
+      case PowerSourceTypes.HYDRO: {
 
         return "/assets/hydro.svg"
       }
@@ -179,19 +179,19 @@ class EnergySourceIcon extends MapIcon {
 
 class MockSimulation {
   dataCenters: MockDataCenter[];
-  energySources: MockEnergySource[];
+  powerSources: MockPowerSource[];
   constructor() {
-    this.energySources = [
-      new MockEnergySource(new Leaf.LatLng(54.6, 7.2), "German Bay Offshore Wind Park", EnergySourceTypes.WIND),
-      new MockEnergySource(new Leaf.LatLng(47.3, 10.1), "Alpine Dams", EnergySourceTypes.HYDRO),
-      new MockEnergySource(new Leaf.LatLng(61.9, 7.1), "Norwegian Hydropower", EnergySourceTypes.HYDRO),
-      new MockEnergySource(new Leaf.LatLng(45.3, 1.6), "French Solar", EnergySourceTypes.SUN),
-      new MockEnergySource(new Leaf.LatLng(53.9, -3.57), "Walney Offshore Wind Farm", EnergySourceTypes.WIND),
+    this.powerSources = [
+      new MockPowerSource(new Leaf.LatLng(54.6, 7.2), "German Bay Offshore Wind Park", PowerSourceTypes.WIND),
+      new MockPowerSource(new Leaf.LatLng(47.3, 10.1), "Alpine Dams", PowerSourceTypes.HYDRO),
+      new MockPowerSource(new Leaf.LatLng(61.9, 7.1), "Norwegian Hydropower", PowerSourceTypes.HYDRO),
+      new MockPowerSource(new Leaf.LatLng(45.3, 1.6), "French Solar", PowerSourceTypes.SUN),
+      new MockPowerSource(new Leaf.LatLng(53.9, -3.57), "Walney Offshore Wind Farm", PowerSourceTypes.WIND),
     ]
     this.dataCenters = [
-      new MockDataCenter(new Leaf.LatLng(52, 13), "Data Center Berlin", [this.energySources[2], this.energySources[0]]),
-      new MockDataCenter(new Leaf.LatLng(48.8, 2.3), "Data Center Paris", [this.energySources[1], this.energySources[3]]),
-      new MockDataCenter(new Leaf.LatLng(53.3, -6.6), "Data Center Ireland", [this.energySources[4]]),
+      new MockDataCenter(new Leaf.LatLng(52, 13), "Data Center Berlin", [this.powerSources[2], this.powerSources[0]]),
+      new MockDataCenter(new Leaf.LatLng(48.8, 2.3), "Data Center Paris", [this.powerSources[1], this.powerSources[3]]),
+      new MockDataCenter(new Leaf.LatLng(53.3, -6.6), "Data Center Ireland", [this.powerSources[4]]),
     ]
 
   }
@@ -200,25 +200,25 @@ class MockSimulation {
 export class MockDataCenter {
   position: Leaf.LatLng;
   name: string;
-  energySources: MockEnergySource[];
-  constructor(pos: Leaf.LatLng, name: string, energySources: MockEnergySource[]) {
+  powerSources: MockPowerSource[];
+  constructor(pos: Leaf.LatLng, name: string, powerSources: MockPowerSource[]) {
     this.position = pos;
     this.name = name;
-    this.energySources = energySources;
+    this.powerSources = powerSources;
   }
 }
 
-export enum EnergySourceTypes {
+export enum PowerSourceTypes {
   SUN,
   WIND,
   HYDRO
 }
 
-export class MockEnergySource {
+export class MockPowerSource {
   position: Leaf.LatLng;
   name: string;
-  type: EnergySourceTypes;
-  constructor(pos: Leaf.LatLng, name: string, type: EnergySourceTypes) {
+  type: PowerSourceTypes;
+  constructor(pos: Leaf.LatLng, name: string, type: PowerSourceTypes) {
     this.position = pos;
     this.name = name;
     this.type = type;

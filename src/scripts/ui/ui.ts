@@ -1,6 +1,6 @@
 //const map = require("./map.ts")
 
-import { EnergySourceTypes, MapManager, MockDataCenter, MockEnergySource } from "./map";
+import { MapManager, MockDataCenter, MockPowerSource, PowerSourceTypes } from "./map";
 
 class UIManager {
   mapManager: MapManager;
@@ -9,26 +9,26 @@ class UIManager {
     this.mapManager = new MapManager();
     this.controlPanel = new ControlPanel();
     this.mapManager.onDataCenterPressed = ((dataCenter: MockDataCenter) => this.onDataCenterPressed(dataCenter))
-    this.mapManager.onEnergySourcePressed = ((energySource: MockEnergySource) => this.onEnergySourcePressed(energySource))
+    this.mapManager.onPowerSourcePressed = ((powerSource: MockPowerSource) => this.onPowerSourcePressed(powerSource))
   }
   onDataCenterPressed(dataCenter: MockDataCenter) {
     this.controlPanel.headline.innerHTML = dataCenter.name;
     this.controlPanel.desc.innerHTML = `A data center.`;
   }
-  onEnergySourcePressed(energySource: MockEnergySource) {
-    this.controlPanel.headline.innerHTML = energySource.name;
-    this.controlPanel.desc.innerHTML = `A source of ${this.getDescriptionForPowerSource(energySource)} power.`;
+  onPowerSourcePressed(powerSource: MockPowerSource) {
+    this.controlPanel.headline.innerHTML = powerSource.name;
+    this.controlPanel.desc.innerHTML = `A source of ${this.getDescriptionForPowerSource(powerSource)} power.`;
   }
 
-  getDescriptionForPowerSource(powerSource: MockEnergySource) {
+  getDescriptionForPowerSource(powerSource: MockPowerSource) {
     switch (powerSource.type) {
-      case EnergySourceTypes.HYDRO: {
+      case PowerSourceTypes.HYDRO: {
         return "hydroelectric"
       }
-      case EnergySourceTypes.SUN: {
+      case PowerSourceTypes.SUN: {
         return "solar"
       }
-      case EnergySourceTypes.WIND: {
+      case PowerSourceTypes.WIND: {
         return "wind"
       }
     }
