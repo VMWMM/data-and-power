@@ -9,11 +9,12 @@ class UIManager {
       simulationManager: SimulationManager
     ) {
       this.simulationManager = simulationManager;
-      console.log(this.simulationManager.datacenters);
-      this.mapManager = new MapManager(
+      this.mapManager = new MapManager();
+      this.mapManager.setComponents(
         this.simulationManager.datacenters, 
         this.simulationManager.powersources
       );
+      this.mapManager.initIcons();
       this.controlPanel = new ControlPanel();
       this.mapManager.onDatacenterPressed = ((datacenter: Datacenter) => this.onDataCenterPressed(datacenter))
       this.mapManager.onPowersourcePressed = ((powersource: Powersource) => this.onPowersourcePressed(powersource))
@@ -30,7 +31,6 @@ class ControlPanel {
   headline: HTMLElement;
   constructor() {
     this.headline = document.getElementById("control-bar-headline")!;
-
   }
 }
 

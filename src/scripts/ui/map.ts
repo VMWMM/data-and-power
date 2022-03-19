@@ -3,29 +3,26 @@ import { Datacenter, Powersource, PowersourceType } from '../simulation';
 
 export class MapManager {
   map: Leaf.Map;
-  datacenters: Datacenter[];
-  powersources: Powersource[];
+  datacenters!: Datacenter[];
+  powersources!: Powersource[];
   datacenterIcons!: DatacenterIcon[];
   powersourceIcons!: PowersourceIcon[];
   onDatacenterPressed: Function | undefined;
   onPowersourcePressed: Function | undefined;
-  constructor(
-    datacenters: Datacenter[],
-    powersources: Powersource[]
-  ) {
+  constructor() {
     this.map = new Leaf.Map('map', {
       center: new Leaf.LatLng(49.023, 13.271),
       zoom: 5,
     });
-    this.datacenters = datacenters;
-    this.powersources = powersources;
-
     const tileServerUrl = "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png";
     Leaf.tileLayer(tileServerUrl, {
       attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     }).addTo(this.map);
+  }
 
-    this.initIcons();
+  setComponents(datacenters: Datacenter[], powersources: Powersource[]) {
+    this.datacenters = datacenters;
+    this.powersources = powersources;
   }
 
   initIcons() {

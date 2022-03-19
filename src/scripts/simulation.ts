@@ -1,7 +1,4 @@
-import { UIManager } from './ui/ui';
-
 class SimulationManager {
-  uiManager!: UIManager;
   datacenters!: Datacenter[];
   powersources!: Powersource[];
   currentTimeStamp!: number;
@@ -20,7 +17,6 @@ class SimulationManager {
       new Powersource("French Solar", [45.3, 1.6], PowersourceType.SUN),
     ];
     this.currentTimeStamp = 0;
-    this.uiManager = new UIManager(this);
   }
   simulateTurn() {
     //update Simulation Logic
