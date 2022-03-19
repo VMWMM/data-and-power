@@ -71,15 +71,20 @@ abstract class MapIcon {
     let svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svgElement.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     svgElement.setAttribute("viewBox", "0 0 250 220");
-    svgElement.style.zIndex = "5";
 
     let icon = await this.getIcon();
     svgElement.innerHTML = icon;
     let svgElementBounds = this.bounds;
     this.overlay = new Leaf.SVGOverlay(svgElement, svgElementBounds, { interactive: true });
 
+    this.overlay.setZIndex(10);
+    this.addNodeSpecificLines();
     this.overlay.addTo(this.mapManager.map);
     this.createEventListeners();
+  }
+
+  addNodeSpecificLines() {
+
   }
 
   createEventListeners() {
@@ -99,7 +104,7 @@ abstract class MapIcon {
 
 class DataCenterIcon extends MapIcon {
   lines: Leaf.Polyline[] | undefined;
-  powerLines: Leaf.Polyline[] | undefined;
+  powerLines!: Leaf.Polyline[];
   declare modelObject: MockDataCenter;
   constructor(dataCenter: MockDataCenter, mapManager: MapManager) {
     super(mapManager);
@@ -129,16 +134,17 @@ class DataCenterIcon extends MapIcon {
     this.lines.forEach(line => line.addTo(this.mapManager.map));
   }
 
-  drawConnectionsWithPowerSources() {
-    this.powerLines = this.modelObject.powerSources.map(powerSource => new Leaf.Polyline([powerSource.position, this.modelObject.position], { color: "#00AA00" }));
+  addNodeSpecificLines(): void {
+    this.powerLines = this.modelObject.powerSources.map(powerSource => new Leaf.Polyline([powerSource.position, this.modelObject.position], { color: "#00AA00", interactive: false, opacity: 0 }));
     this.powerLines.forEach(line => line.addTo(this.mapManager.map));
   }
 
+  drawConnectionsWithPowerSources() {
+    this.powerLines.forEach(powerLine => powerLine.setStyle({ opacity: 1 }));
+  }
+
   removeConnectionsWithPowerSources() {
-    if (this.powerLines) {
-      this.powerLines.forEach(powerLine => powerLine.remove());
-      this.powerLines = [];
-    }
+    this.powerLines.forEach(powerLine => powerLine.setStyle({ opacity: 0 }));
   }
 }
 
