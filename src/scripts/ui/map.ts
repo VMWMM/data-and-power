@@ -1,10 +1,12 @@
 import * as Leaf from 'leaflet';
 
-class MapManager {
+export class MapManager {
   map: Leaf.Map;
   dataCenterIcons!: DataCenterIcon[];
   energySourceIcons!: EnergySourceIcon[];
   simulation: MockSimulation;
+  onDataCenterPressed: Function | undefined;
+  onEnergySourcePressed: Function | undefined;
   constructor() {
     this.map = new Leaf.Map('map', {
       center: new Leaf.LatLng(49.023, 13.271),
@@ -22,7 +24,7 @@ class MapManager {
     this.simulation = new MockSimulation();
     this.initIcons();
 
-    this.map.on("click", (evt) => console.log("Clicked on map ", evt))
+    //this.map.on("click", (evt) => console.log("Clicked on map ", evt))
   }
 
   initIcons() {
@@ -68,15 +70,19 @@ abstract class MapIcon {
   async createOverlay() {
     let svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svgElement.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-    svgElement.setAttribute("viewBox", "0 0 200 200");
+    svgElement.setAttribute("viewBox", "0 0 220 220");
 
     let icon = await this.getIcon();
     svgElement.innerHTML = icon;
     let svgElementBounds = this.bounds;
     this.overlay = new Leaf.SVGOverlay(svgElement, svgElementBounds, { interactive: true });
-    this.overlay.on("click", event => alert(event));
 
     this.overlay.addTo(this.mapManager.map);
+    this.createEventListeners();
+  }
+
+  createEventListeners() {
+    throw new Error("Subclass responsibility")
   }
 
   generateMarker() {
@@ -97,6 +103,12 @@ class DataCenterIcon extends MapIcon {
     this.modelObject = dataCenter;
 
     this.createOverlay();
+  }
+
+  createEventListeners() {
+    if (this.overlay) {
+      this.overlay.on("click", event => { Leaf.DomEvent.stopPropagation(event); if (this.mapManager.onDataCenterPressed) this.mapManager.onDataCenterPressed(this.modelObject) });
+    }
   }
 
   get iconPath(): string {
@@ -120,6 +132,16 @@ class EnergySourceIcon extends MapIcon {
     this.modelObject = energySource;
 
     this.createOverlay();
+
+  }
+
+  createEventListeners(): void {
+    if (this.overlay) {
+      this.overlay.on("click", event => {
+        Leaf.DomEvent.stopPropagation(event);
+        if (this.mapManager.onEnergySourcePressed) this.mapManager.onEnergySourcePressed(this.modelObject)
+      })
+    }
   }
 
   get iconPath(): string {
@@ -154,7 +176,7 @@ class MockSimulation {
   }
 }
 
-class MockDataCenter {
+export class MockDataCenter {
   position: Leaf.LatLng;
   name: string;
   constructor(pos: Leaf.LatLng, name: string) {
@@ -168,7 +190,7 @@ enum EnergySourceTypes {
   WIND
 }
 
-class MockEnergySource {
+export class MockEnergySource {
   position: Leaf.LatLng;
   name: string;
   type: EnergySourceTypes;
@@ -178,8 +200,6 @@ class MockEnergySource {
     this.type = type;
   }
 }
-
-new MapManager();
 
 async function ajax(path: string): Promise<string> {
   return new Promise(function (resolve, reject) {

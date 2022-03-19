@@ -1,12 +1,30 @@
-const map = require("./map.ts")
+//const map = require("./map.ts")
 
+import { MapManager, MockDataCenter, MockEnergySource } from "./map";
 
-/*
-let canvas = document.getElementById('map-canvas') as
-  HTMLCanvasElement;
-let context = canvas.getContext("2d");
-if (context) {
-  //context.rect(0, 0, 200, 200);
-  // context.fill()
-  context.drawImage(document.getElementById("map-image") as HTMLImageElement, 0, 0);
-}*/
+class UIManager {
+  mapManager: MapManager;
+  controlPanel: ControlPanel;
+  constructor() {
+    this.mapManager = new MapManager();
+    this.controlPanel = new ControlPanel();
+    this.mapManager.onDataCenterPressed = ((dataCenter: MockDataCenter) => this.onDataCenterPressed(dataCenter))
+    this.mapManager.onEnergySourcePressed = ((energySource: MockEnergySource) => this.onDataCenterPressed(energySource))
+  }
+  onDataCenterPressed(dataCenter: MockDataCenter) {
+    this.controlPanel.headline.innerHTML = dataCenter.name;
+  }
+  onEnergySourcePressed(energySource: MockEnergySource) {
+    this.controlPanel.headline.innerHTML = energySource.name;
+  }
+}
+
+class ControlPanel {
+  headline: HTMLElement;
+  constructor() {
+    this.headline = document.getElementById("control-bar-headline")!;
+
+  }
+}
+
+new UIManager();
