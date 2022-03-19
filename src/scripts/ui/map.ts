@@ -1,4 +1,5 @@
 import * as Leaf from 'leaflet';
+import { antPath } from 'leaflet-ant-path';
 
 export class MapManager {
   map: Leaf.Map;
@@ -70,6 +71,7 @@ abstract class MapIcon {
     let svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svgElement.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     svgElement.setAttribute("viewBox", "0 0 250 220");
+    svgElement.style.zIndex = "5";
 
     let icon = await this.getIcon();
     svgElement.innerHTML = icon;
@@ -122,7 +124,7 @@ class DataCenterIcon extends MapIcon {
     this.lines = this.mapManager.dataCenterIcons
       .filter(dcI => dcI != this)
       .map(dataCenterIcon =>
-        new Leaf.Polyline([dataCenterIcon.modelObject.position, this.modelObject.position], { color: "#0088AA" })
+        antPath([dataCenterIcon.modelObject.position, this.modelObject.position], { color: "#0088AA" })
       );
     this.lines.forEach(line => line.addTo(this.mapManager.map));
   }
