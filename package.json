@@ -1,0 +1,27 @@
+{
+  "name": "data-and-power",
+  "version": "0.0.1",
+  "config": {
+    "host": "localhost",
+    "port": "8080"
+  },
+  "scripts": {
+    "start": "webpack-serve webpack.config.js",
+    "build": "tsc --build"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^10.12.21",
+    "awesome-typescript-loader": "^5.2.1",
+    "prettier": "^1.16.4",
+    "source-map-loader": "^0.2.4",
+    "tslint": "^5.12.1",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^3.3.1",
+    "typescript-tslint-plugin": "^0.3.1",
+    "webpack": "^4.29.3",
+    "webpack-cli": "^3.2.3",
+    "webpack-serve": "^2.0.3",
+    "worker-loader": "^2.0.0"
+  }
+}
