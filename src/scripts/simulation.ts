@@ -84,8 +84,8 @@ class SimulationManager {
     //wait
     //generate new incoming tasks
     //generate new func
-    this.printState();
     this.currentTime++;
+    this.printState();
   }
 
   //helper function as we dont have dashboards yet
@@ -203,7 +203,7 @@ class SimulationManager {
     this.tasks.forEach((t) => {
       if (t instanceof DeadlineTask) {
         if (t.startTime <= atTime) {
-          if (t.startTime + t.duration < atTime) {
+          if (t.startTime + t.duration <= atTime) {
             this.points += this.removeTask(t, true);
           } else
             t.active = true;

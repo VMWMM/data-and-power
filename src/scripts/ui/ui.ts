@@ -57,7 +57,8 @@ class UIManager {
 
   onNextTurnButtonPressed() {
     this.simulationManager.simulateTurn();
-    document.getElementById("time-span")!.innerHTML = this.simulationManager.currentTimeStamp.toString();
+    console.log(this.simulationManager.currentTime)
+    document.getElementById("time-span")!.innerHTML = this.simulationManager.currentTime.toString();
     this.redraw();
   }
 
