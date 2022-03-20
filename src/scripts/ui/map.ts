@@ -32,6 +32,18 @@ export class MapManager {
     this.powersourceIcons = this.powersources.map(es => new PowersourceIcon(es, this));
     this.datacenterIcons.forEach(dci => dci.connect());
   }
+
+  getIconForDatacenter(datacenter: Datacenter) {
+    return this.datacenterIcons.find(dci => dci.modelObject == datacenter)
+  }
+
+  getIconForPowerSource(powersource: Powersource) {
+    return this.powersourceIcons.find(psi => psi.modelObject == powersource)
+  }
+
+  getIconForNode(node: Powersource | Datacenter) {
+    return [...this.powersourceIcons, ... this.datacenterIcons].find(n => n.modelObject == node)
+  }
 }
 
 abstract class MapIcon {
@@ -39,10 +51,12 @@ abstract class MapIcon {
   marker: Leaf.Marker | undefined;
   overlay: Leaf.SVGOverlay | undefined;
   modelObject!: Datacenter | Powersource;
+  isSelected: boolean;
 
   mapManager: MapManager;
   constructor(mapManager: MapManager) {
     this.mapManager = mapManager;
+    this.isSelected = false;
   }
 
   get iconPath(): string {
@@ -106,7 +120,7 @@ abstract class MapIcon {
   }
 }
 
-class DatacenterIcon extends MapIcon {
+export class DatacenterIcon extends MapIcon {
   lines: Leaf.Polyline[] | undefined;
   powerLines!: Leaf.Polyline[];
   declare modelObject: Datacenter;
@@ -119,8 +133,11 @@ class DatacenterIcon extends MapIcon {
   createEventListeners() {
     if (this.overlay) {
       this.overlay.on("click", event => { Leaf.DomEvent.stopPropagation(event); if (this.mapManager.onDatacenterPressed) this.mapManager.onDatacenterPressed(this.modelObject) });
-      this.overlay.on("mouseover", () => this.drawConnectionsWithPowerSources());
-      this.overlay.on("mouseout", () => this.removeConnectionsWithPowerSources());
+      this.overlay.on("mouseover", () => {
+        this.drawConnectionsWithPowerSources()
+      }
+      );
+      this.overlay.on("mouseout", () => { if (!this.isSelected) { this.removeConnectionsWithPowerSources() } });
     }
   }
 
@@ -151,7 +168,7 @@ class DatacenterIcon extends MapIcon {
   }
 }
 
-class PowersourceIcon extends MapIcon {
+export class PowersourceIcon extends MapIcon {
   declare modelObject: Powersource;
   constructor(powersource: Powersource, mapManager: MapManager) {
     super(mapManager);
