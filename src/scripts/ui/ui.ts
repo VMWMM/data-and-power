@@ -57,8 +57,6 @@ class UIManager {
 
   onNextTurnButtonPressed() {
     this.simulationManager.simulateTurn();
-    console.log(this.simulationManager.currentTime)
-    document.getElementById("time-span")!.innerHTML = this.simulationManager.currentTime.toString();
     this.redraw();
   }
 
@@ -116,6 +114,9 @@ class UIManager {
   redraw() {
     // TODO: redraw UI...
     this.redrawTaskQueue();
+    this.mapManager.terminator.setTime(this.simulationManager.getDateFromSimTime());
+    let simDate = this.simulationManager.getDateFromSimTime();
+    document.getElementById("time-span")!.innerHTML = simDate.toLocaleString();
   }
 }
 

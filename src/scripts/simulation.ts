@@ -5,8 +5,9 @@ class SimulationManager {
   currentTime!: number;
   coalFactor!: number;
   points!: number;
+  simulationStartDate!: Date;
 
-  constructor() {}
+  constructor() { }
   initialize() {
     this.powersources = [
       new Powersource(
@@ -66,6 +67,7 @@ class SimulationManager {
     this.tasks[0].assignTask(this.datacenters[0]);
     this.tasks[1].assignTask(this.datacenters[0]);
     this.currentTime = 0;
+    this.simulationStartDate = new Date(Date.now());
     this.coalFactor = 10;
   }
 
@@ -134,8 +136,8 @@ class SimulationManager {
         let energyVal = Math.max(
           0,
           randn_bm() * variance +
-            p.powerHistory[this.currentTime] +
-            p.lastForecastDiff
+          p.powerHistory[this.currentTime] +
+          p.lastForecastDiff
         );
         p.lastForecastDiff = energyVal - p.powerHistory[this.currentTime];
         p.powerHistory[this.currentTime] = energyVal;
@@ -223,6 +225,12 @@ class SimulationManager {
       return -points;
     }
   }
+
+  getDateFromSimTime(): Date {
+    const date = new Date(this.simulationStartDate.toString());
+    date.setHours(date.getHours() + this.currentTime);
+    return date;
+  }
 }
 
 class Datacenter {
@@ -263,7 +271,7 @@ class Datacenter {
   getCurrentWorkload(): number {
     let sum = 0;
     this.tasks.forEach(t => {
-      if(t.active)
+      if (t.active)
         sum += t.workLoad;
     })
     return sum * this.workloadToPowerFac;
@@ -302,7 +310,7 @@ class Powersource {
     //this.estPowerOverTime = [];
   }
 
-  makeNewForecast(): void {}
+  makeNewForecast(): void { }
 }
 
 class Task {
