@@ -12,6 +12,7 @@
     "lib/": true,
     "node_modules/": true
   },
+  "files.eol": "\n",
   "editor.codeActionsOnSave": {
     "source.organizeImports": true
   },
