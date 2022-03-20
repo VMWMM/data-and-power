@@ -1,6 +1,7 @@
 import * as Leaf from 'leaflet';
 import { antPath } from 'leaflet-ant-path';
 import { Datacenter, Powersource, PowersourceType } from '../simulation';
+import { ajax } from '../utils';
 
 export class MapManager {
   map: Leaf.Map;
@@ -186,16 +187,4 @@ class PowersourceIcon extends MapIcon {
       }
     }
   }
-}
-
-async function ajax(path: string): Promise<string> {
-  return new Promise(function (resolve, reject) {
-    var xhr = new XMLHttpRequest();
-    xhr.onload = function () {
-      resolve(this.responseText);
-    };
-    xhr.onerror = reject;
-    xhr.open("GET", path);
-    xhr.send();
-  });
 }
