@@ -5,16 +5,18 @@ class SimulationManager {
   constructor() {
   }
   initialize() {
-    this.datacenters = [
-      new Datacenter(0, "Berlin", [52, 13], 10, 100, 1, [1, 5]),
-      new Datacenter(1, "Paris", [48.8, 2.3], 30, 200, 2, [1, 3]),
-      new Datacenter(2, "Ireland", [53.3, -6.6], 5, 50, 1.5, [5, 3])
-    ];
     this.powersources = [
       new Powersource("German Bay Offshore Wind Park", [54.6, 7.2], PowersourceType.WIND),
-      new Powersource("Alpine Dams", [47.3, 10.1], PowersourceType.WIND),
-      new Powersource("Norwegian Hydropower", [61.9, 7.1], PowersourceType.WIND),
+      new Powersource("Alpine Dams", [47.3, 10.1], PowersourceType.HYDRO),
+      new Powersource("Norwegian Hydropower", [61.9, 7.1], PowersourceType.HYDRO),
       new Powersource("French Solar", [45.3, 1.6], PowersourceType.SUN),
+      new Powersource("Walney Offshore Wind Farm", [53.9, -3.57], PowersourceType.WIND),
+    ];
+    this.datacenters = [
+      new Datacenter(0, "Berlin", [52, 13], 10, 100, 1, [1, 5], [this.powersources[2], this.powersources[0]]),
+      new Datacenter(1, "Paris", [48.8, 2.3], 30, 200, 2, [1, 3], [this.powersources[3]]),
+      new Datacenter(2, "Ireland", [53.3, -6.6], 5, 50, 1.5, [5, 3], [this.powersources[4]]),
+
     ];
     this.currentTimeStamp = 0;
   }

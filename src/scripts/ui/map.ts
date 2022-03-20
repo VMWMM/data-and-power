@@ -1,4 +1,5 @@
 import * as Leaf from 'leaflet';
+import { antPath } from 'leaflet-ant-path';
 import { Datacenter, Powersource, PowersourceType } from '../simulation';
 
 export class MapManager {
@@ -129,8 +130,8 @@ class DatacenterIcon extends MapIcon {
   connect() {
     this.lines = this.mapManager.datacenterIcons
       .filter(dcI => dcI != this)
-      .map(datacenterIcon =>
-        new Leaf.Polyline([datacenterIcon.modelObject.position, this.modelObject.position], { color: "#0088AA" })
+      .map(dataCenterIcon =>
+        antPath([dataCenterIcon.modelObject.position, this.modelObject.position], { color: "#0088AA" })
       );
     this.lines.forEach(line => line.addTo(this.mapManager.map));
   }
@@ -167,16 +168,23 @@ class PowersourceIcon extends MapIcon {
   }
 
   get iconPath(): string {
-    var path: string = "";
     switch (this.modelObject.powerType) {
       case PowersourceType.SUN: {
-        path = "/assets/sun.svg"
+        return "/assets/sun.svg"
       }
       case PowersourceType.WIND: {
-        path = "/assets/wind.svg"
+        return "/assets/wind.svg"
+      }
+      case PowersourceType.HYDRO: {
+        return "/assets/hydro.svg"
+      }
+      case PowersourceType.THERMAL: {
+        return "/assets/hydro.svg"
+      }
+      case PowersourceType.OTHER: {
+        return "/assets/hydro.svg"
       }
     }
-    return path;
   }
 }
 
