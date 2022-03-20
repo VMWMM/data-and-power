@@ -43,7 +43,7 @@ class SimulationManager {
         10,
         100,
         1,
-        [1, 5],
+        [0, 1, 5],
         [this.powersources[2], this.powersources[0]]
       ),
       new Datacenter(
@@ -53,7 +53,7 @@ class SimulationManager {
         30,
         200,
         2,
-        [1, 3],
+        [1, 0, 3],
         [this.powersources[3]]
       ),
       new Datacenter(
@@ -63,7 +63,7 @@ class SimulationManager {
         5,
         50,
         1.5,
-        [5, 3],
+        [5, 3, 0],
         [this.powersources[4]]
       ),
     ];
@@ -393,11 +393,23 @@ export class Task {
   }
 
   assignTask(dc: Datacenter, currentTime: number): boolean {
+    let dist = 0;
+    if (this.scheduled, this.active) {
+      dist = this.datacenter.distToDatacenters[dc.id];
+    }
     let currentLoad = dc.getCurrentWorkload(currentTime);
     if (currentLoad + this.workLoad * dc.workloadToPowerFac <= dc.maxWorkload) {
       dc.tasks.push(this);
       this.datacenter = dc;
       this.scheduled = true;
+      let delay = 2 + 0.1 * dist * dist;
+      if (this instanceof ContinuousTask) {
+        this.delay = delay;
+      }
+      else if (this instanceof DeadlineTask) {
+        this.startTime += delay;
+      }
+
       return true;
     } else {
       return false;
