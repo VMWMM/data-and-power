@@ -24,6 +24,7 @@ class UIManager {
     this.mapManager.onPowersourcePressed = ((powersource: Powersource) => this.onPowersourcePressed(powersource));
     this.nextTurnButton = document.getElementById("next-turn-button")! as HTMLButtonElement;
     this.nextTurnButton.onclick = () => this.onNextTurnButtonPressed();
+    this.redraw();
   }
 
   getDescriptionForPowerSource(powerSource: Powersource): string {
@@ -56,6 +57,7 @@ class UIManager {
   onNextTurnButtonPressed() {
     this.simulationManager.simulateTurn();
     document.getElementById("time-span")!.innerHTML = this.simulationManager.currentTimeStamp.toString();
+    this.redraw();
   }
 
   updateSelection(newSelection: Powersource | Datacenter) {
@@ -72,6 +74,31 @@ class UIManager {
       icon.drawConnectionsWithPowerSources();
       icon.isSelected = true;
     }
+  }
+
+  redrawTaskQueue() {
+    let taskQueue = document.getElementById("task-queue")!;
+    taskQueue.innerHTML = ""; //Clear task queue
+    const unscheduledTasks = [{ name: "Webpage", continous: true }, { name: "Crunch numbers", continous: false }, { name: "Minecraft server", continous: true }, { name: "Hackaton Server", continous: true }, { name: "Hackaton Server", continous: true }, { name: "Black Friday Sale", continous: false }, { name: "Research Project", continous: false }, { name: "Matrix Server", continous: true }, { name: "Unnamed Task", continous: false }]; // Replace with simulation API call
+    unscheduledTasks.forEach(task => {
+      let taskDiv = this.getUnscheduledTaskContainer(task);
+      taskQueue.appendChild(taskDiv);
+    });
+  }
+
+  getUnscheduledTaskContainer(task: { name: string; continous: boolean; }): HTMLDivElement {
+    let node = document.createElement("div");
+    node.classList.add("unscheduled-task");
+    let title = document.createElement("p");
+    title.classList.add("unscheduled-task-label");
+    title.innerText = task.name;
+    node.appendChild(title);
+    return node;
+  }
+
+  redraw() {
+    // TODO: redraw map...
+    this.redrawTaskQueue();
   }
 }
 
