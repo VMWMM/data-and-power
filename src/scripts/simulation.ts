@@ -5,9 +5,11 @@ class SimulationManager {
   currentTime!: number;
   coalFactor!: number;
   points!: number;
+  simulationStartDate!: Date;
 
   constructor() { }
   initialize() {
+
     this.powersources = [
       new Powersource(
         "German Bay Offshore Wind Park",
@@ -60,12 +62,13 @@ class SimulationManager {
       ),
     ];
     this.tasks = [
-      new DeadlineTask(1, "AI-Training", 30, 5, 0, 10),
+      new DeadlineTask(1, "AI-Training", 30, 5, 10),
       new ContinuousTask(0, "OpenHPI-Website", 20, 20, 1),
     ];
-    this.tasks[0].assignTask(this.datacenters[0]);
-    this.tasks[1].assignTask(this.datacenters[0]);
+    //this.tasks[0].assignTask(this.datacenters[0]);
+    //this.tasks[1].assignTask(this.datacenters[0]);
     this.currentTime = 0;
+    this.simulationStartDate = new Date(Date.now());
     this.coalFactor = 10;
   }
 
@@ -99,6 +102,7 @@ class SimulationManager {
         console.log(" Task: " + t.name);
       });
     });
+    console.log("Score: " + this.points)
   }
 
   //not yet used since we dont update any of the visuals based on the logic
@@ -210,6 +214,8 @@ class SimulationManager {
             this.points += this.removeTask(t, true);
           } else
             t.active = true;
+        } else if(t.deadline < atTime){
+          this.points += this.removeTask(t, true);
         }
       }
     });
@@ -219,12 +225,19 @@ class SimulationManager {
   removeTask(t: Task, finished: boolean) {
     var points = t.workLoad;
     this.tasks.splice(this.tasks.indexOf(t), 1);
-    t.datacenter.tasks.splice(t.datacenter.tasks.indexOf(t), 1);
+    if(t.scheduled)
+      t.datacenter.tasks.splice(t.datacenter.tasks.indexOf(t), 1);
     if (finished) {
       return points;
     } else {
       return -points;
     }
+  }
+
+  getDateFromSimTime(): Date {
+    const date = new Date(this.simulationStartDate.toString());
+    date.setHours(date.getHours() + this.currentTime);
+    return date;
   }
 }
 
@@ -236,6 +249,7 @@ class Datacenter {
   maxWorkload: number;
   workloadToPowerFac: number; //efficiency
   distToDatacenters: number[];
+
   powersources: Powersource[];
   tasks: Task[];
 
@@ -258,6 +272,11 @@ class Datacenter {
     this.baseConsumption = baseConsumption;
     this.workloadToPowerFac = workloadToPowerFac;
     this.distToDatacenters = distToDatacenters;
+    this.tasks = [];
+  }
+  getCurrentPowerReq(atTimeStep: number): number {
+    return this.getCurrentWorkload(atTimeStep) * this.workloadToPowerFac + this.baseConsumption;
+
     this.powersources = powersources;
     this.tasks = [];
   }
@@ -298,6 +317,7 @@ class Powersource {
     name: string,
     position: [number, number],
     powerType: PowersourceType
+
     //estPowerOverTime: number[],
   ) {
     this.name = name;
@@ -348,49 +368,82 @@ class Powersource {
   }
 }
 
-class Task {
+export class Task {
   id: number;
   name: string;
   workLoad: number;
   active: boolean;
+  scheduled: boolean;
   datacenter!: Datacenter;
   constructor(id: number, name: string, workLoad: number, active: boolean) {
     this.id = id;
     this.name = name;
     this.workLoad = workLoad;
     this.active = active;
+    this.scheduled = false;
   }
 
-  assignTask(dc: Datacenter) {
-    dc.tasks.push(this);
-    this.datacenter = dc;
+  assignTask(dc: Datacenter): boolean {
+    let currentLoad = dc.getCurrentWorkload();
+    if(currentLoad + this.workLoad * dc.workloadToPowerFac <= dc.maxWorkload) {
+      dc.tasks.push(this);
+      this.datacenter = dc;
+      this.scheduled = true;
+      return true;
+    } else {
+      return false;
+    }
   }
 }
 
-class DeadlineTask extends Task {
+export class DeadlineTask extends Task {
   duration: number;
-  startTime: number;
+  startTime!: number;
   deadline: number;
   constructor(
     id: number,
     name: string,
     workLoad: number,
     duration: number,
-    startTime: number,
     deadline: number
   ) {
     super(id, name, workLoad, false);
-    this.startTime = startTime;
     this.duration = duration;
     this.deadline = deadline;
+  }
+
+  assignDeadlineTask(dc: Datacenter, atTime: number): boolean{
+    /*let currentLoad = dc.getCurrentWorkload();
+    if(currentLoad + this.workLoad * dc.workloadToPowerFac <= dc.maxWorkload) {
+      dc.tasks.push(this);
+      console.log(dc.tasks)
+      this.active = true;
+      this.datacenter = dc;
+      this.startTime = atTime;
+      this.scheduled = true;
+      return true;
+    } else {
+      return false;
+    }*/
+    
+    if(super.assignTask(dc)){
+      this.startTime = atTime;
+      return true;
+    } else {
+      return false;
+    }
   }
 
   getEndTime(): number {
     return this.startTime + this.duration;
   }
+
+  isInProgress(atTime: number): boolean {
+    return this.startTime <= atTime && this.getEndTime() >= atTime;
+  }
 }
 
-class ContinuousTask extends Task {
+export class ContinuousTask extends Task {
   mean: number;
   variance: number;
   delay: number;
@@ -405,6 +458,18 @@ class ContinuousTask extends Task {
     this.mean = mean;
     this.variance = variance;
     this.delay = 0;
+  }
+
+  assignContinuousTask(dc: Datacenter): boolean {
+    let currentLoad = dc.getCurrentWorkload();
+    if(currentLoad + this.workLoad * dc.workloadToPowerFac <= dc.maxWorkload) {
+      dc.tasks.push(this);
+      this.datacenter = dc;
+      this.scheduled = true;
+      return true;
+    } else {
+      return false;
+    }
   }
 }
 
@@ -422,4 +487,5 @@ const windDefault: number[] = [1.2, 1.3, 1.6, 2.0, 2.2, 1.9, 1.6, 1.4, 1.0, 0.6,
 const waterDefault: number[] = [1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.0, 1.0, 1.25, 1.25, 1.5, 1.5, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25];
 
 export { SimulationManager, Datacenter, Powersource, PowersourceType };
+
 
