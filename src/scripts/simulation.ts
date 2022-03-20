@@ -176,12 +176,10 @@ class SimulationManager {
     for (var i: number = 0; i < this.datacenters.length; i++) {
       var d: Datacenter = this.datacenters[i];
       addPoints -= coalUsed[i] * this.coalFactor;
-      console.log("coalus" + addPoints);
       for (var j: number = 0; j < d.tasks.length; j++) {
         var t = d.tasks[j];
         if (t instanceof ContinuousTask) {
           addPoints += (1 - 2 * t.delay) * t.workLoad;
-          console.log("delay" + addPoints);
         } else if (t instanceof DeadlineTask) {
           var finished: boolean = false;
           if (this.currentTime >= t.deadline) {
@@ -189,18 +187,16 @@ class SimulationManager {
               finished = true;
             }
             addPoints += this.removeTask(d.tasks[j], finished);
-            console.log("taskfin" + addPoints);
           } else {
             if (this.currentTime - t.duration > t.startTime) {
               finished = true;
               addPoints += this.removeTask(d.tasks[j], finished);
-              console.log("taskFin2" + addPoints);
             }
           }
         }
       }
     }
-    console.log("points:" + addPoints)
+    console.log("additional points:" + addPoints);
     return addPoints;
   }
 
@@ -269,11 +265,14 @@ class Datacenter {
   //sum workload of all active tasks for datacenter
   getCurrentWorkload(): number {
     let sum = 0;
+
     this.tasks.forEach(t => {
-      if (t.active)
+      if (t.active) {
+        //TODO WENN zwischen Timesteps deadline task fertig, nicht die volle workload
         sum += t.workLoad;
+      }
     })
-    return sum * this.workloadToPowerFac;
+    return sum;
   }
 }
 
