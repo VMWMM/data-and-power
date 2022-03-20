@@ -145,6 +145,7 @@ class UIManager {
     this.redrawTaskQueue();
     this.mapManager.terminator.setTime(this.simulationManager.getDateFromSimTime());
     let simDate = this.simulationManager.getDateFromSimTime();
+    this.dataCenterView.setToDatacenter(null, this.simulationManager.currentTime);
     document.getElementById("time-span")!.innerHTML = simDate.toLocaleString();
   }
 }

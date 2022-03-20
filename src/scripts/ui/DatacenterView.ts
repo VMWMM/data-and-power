@@ -25,32 +25,39 @@ class DataCenterView {
       shapes: [] as any
     };
     // //move up maybe?
-    // (this.plotEl as any).on('plotly_click', ((data: any) => this.onClickAtGraph(data)));
+    this.plotEl.on('plotly_click', ((data: any) => this.onClickAtGraph(data)));
 
-    // var config = { responsive: true, staticPlot: false, displayModeBar: false };
+    var config = { responsive: true, staticPlot: false, displayModeBar: false };
+    var plot = Plotly.newPlot(this.plotEl, [{
+      x: [1, 2, 3, 4, 5],
+      y: [1, 2, 4, 8, 16]
+    }], this.layout, config);
+    // this.plotEl.onclick = ((e: any) => this.onClick(e));
     // var plot = Plotly.newPlot(this.plotEl, [{
     //   x: [1, 2, 3, 4, 5],
     //   y: [1, 2, 4, 8, 16]
     // }], this.layout, config);
 
     //mouse click down in general
-    this.plotEl.onclick = ((e: any) => this.onClick(e));
 
     this.setToDatacenter(initDC, 0);
   }
+
 
   hasRequestedTimeTaskPlacement = true;
   requestTaskTime() {//not clean
     this.hasRequestedTimeTaskPlacement = true;
   }
-  // onClickAtGraph(data: any) {
-  //   console.log("clicked at time ", data.points[0].x + 1);
-  // }
+  onClickAtGraph(data: any) {
+    console.log("clicked at time ", data.points[0].x + 1);
+  }
+
   onClick(e: any) {
     if (e) {
       if (this.hasRequestedTimeTaskPlacement) {
         this.hasRequestedTimeTaskPlacement = false;
         console.log("clicked at time ", Math.floor(e.clientX - e.target.getBoundingClientRect().left) + this.currentStartHour);
+
       } else {
         var rect = e.target.getBoundingClientRect();
         var x = e.clientX - rect.left; //x position within the element.
@@ -64,9 +71,10 @@ class DataCenterView {
           }
         }
       }
-
     }
   }
+
+
   setToDatacenter(dc: Datacenter | null, time: number) {
     if (dc == null) {
       dc = this.currentDataCenter;
@@ -113,18 +121,23 @@ class DataCenterView {
     this.shapeToTask.push(task);
   }
 
+  // plot
 
   plotTasks(dc: Datacenter, time: number) {
     this.layout.shapes = [];
     this.shapeToTask = [];
+
+    let taskLoadSoFar = 0;
     //plot tasks at time
     for (let i = 0; i < dc.tasks.length; i++) {
       if (dc.tasks[i] instanceof DeadlineTask) {
         var task = dc.tasks[i] as DeadlineTask;
         if (task.startTime >= time && task.duration + task.startTime < time) {
-          this.addRect(task.startTime, 0, task.duration, task.workLoad, '#ff0000', task.active, task);
+          this.addRect(task.startTime, taskLoadSoFar, task.duration, task.workLoad, '#ff0000', task.active, task);
+          taskLoadSoFar += task.workLoad;
         } else {
-          this.addRect(0, 0, 24, dc.tasks[i].workLoad, '#ff0000', dc.tasks[i].active, dc.tasks[i]);
+          this.addRect(0, taskLoadSoFar, 24, dc.tasks[i].workLoad, '#ff0000', dc.tasks[i].active, dc.tasks[i]);
+          taskLoadSoFar += task.workLoad;
         }
       }
     }
