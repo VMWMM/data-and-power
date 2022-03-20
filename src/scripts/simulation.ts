@@ -63,8 +63,8 @@ class SimulationManager {
       new DeadlineTask(1, "AI-Training", 30, 5, 0, 10),
       new ContinuousTask(0, "OpenHPI-Website", 20, 20, 1),
     ];
-    this.tasks[0].assignTask(this.datacenters[0]);
-    this.tasks[1].assignTask(this.datacenters[0]);
+    //this.tasks[0].assignTask(this.datacenters[0]);
+    //this.tasks[1].assignTask(this.datacenters[0]);
     this.currentTime = 0;
     this.coalFactor = 10;
   }
@@ -99,6 +99,7 @@ class SimulationManager {
         console.log(" Task: " + t.name);
       });
     });
+    console.log("Score: " + this.points)
   }
 
   //not yet used since we dont update any of the visuals based on the logic
@@ -216,7 +217,8 @@ class SimulationManager {
   removeTask(t: Task, finished: boolean) {
     var points = t.workLoad;
     this.tasks.splice(this.tasks.indexOf(t), 1);
-    t.datacenter.tasks.splice(t.datacenter.tasks.indexOf(t), 1);
+    if(t.scheduled)
+      t.datacenter.tasks.splice(t.datacenter.tasks.indexOf(t), 1);
     if (finished) {
       return points;
     } else {
@@ -310,17 +312,26 @@ export class Task {
   name: string;
   workLoad: number;
   active: boolean;
+  scheduled: boolean;
   datacenter!: Datacenter;
   constructor(id: number, name: string, workLoad: number, active: boolean) {
     this.id = id;
     this.name = name;
     this.workLoad = workLoad;
     this.active = active;
+    this.scheduled = false;
   }
 
-  assignTask(dc: Datacenter) {
-    dc.tasks.push(this);
-    this.datacenter = dc;
+  assignTask(dc: Datacenter): boolean {
+    let currentLoad = dc.getCurrentWorkload();
+    if(currentLoad + this.workLoad * dc.workloadToPowerFac <= dc.maxWorkload) {
+      dc.tasks.push(this);
+      this.datacenter = dc;
+      this.scheduled = true;
+      return true;
+    } else {
+      return false;
+    }
   }
 }
 

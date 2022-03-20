@@ -59,6 +59,7 @@ class UIManager {
     this.simulationManager.simulateTurn();
     console.log(this.simulationManager.currentTime)
     document.getElementById("time-span")!.innerHTML = this.simulationManager.currentTime.toString();
+    document.getElementById("score-span")!.innerHTML = this.simulationManager.points.toString();
     this.redraw();
   }
 
@@ -81,7 +82,7 @@ class UIManager {
   redrawTaskQueue() {
     let taskQueue = document.getElementById("task-queue")!;
     taskQueue.innerHTML = ""; //Clear task queue
-    const unscheduledTasks = this.simulationManager.tasks;
+    const unscheduledTasks = this.simulationManager.tasks.filter(t => !t.scheduled);
     unscheduledTasks.forEach(task => {
       let taskDiv = this.getUnscheduledTaskContainer(task);
       taskQueue.appendChild(taskDiv);
@@ -95,8 +96,10 @@ class UIManager {
           fn: (node: any) => {
             let unscheduledTaskNode = node as HTMLDivElement;
             let task = this.unscheduledTaskNodeMap.get(unscheduledTaskNode)!;
-            task.assignTask(datacenter);
-            unscheduledTaskNode.remove();
+            if(task.assignTask(datacenter))
+              unscheduledTaskNode.remove();
+            else
+              alert("Can't assign to this datacenter!")
           }
         }
       }));
