@@ -1,4 +1,5 @@
 import * as sc from "@hebcal/solar-calc";
+import * as data from '../simulationData.json';
 
 
 let startDate: Date | null = null;
@@ -19,7 +20,7 @@ class SimulationManager {
     return d;
   }
   initialize() {
-
+    /*
     this.powersources = [
       new Powersource(
         "German Bay Offshore Wind Park",
@@ -39,6 +40,8 @@ class SimulationManager {
         PowersourceType.WIND
       ),
     ];
+    */
+    /*
     this.datacenters = [
       new Datacenter(
         0,
@@ -71,10 +74,69 @@ class SimulationManager {
         [this.powersources[4]]
       ),
     ];
-    this.tasks = [
+    */
+   /*
+       this.tasks = [
       new DeadlineTask(1, "AI-Training", 30, 5, 10),
       new ContinuousTask(0, "OpenHPI-Website", 20, 20, 1),
     ];
+    */
+   this.powersources = [];
+    data.powersources.forEach(ps => {
+      this.powersources.push(
+        new Powersource(
+          ps.id, 
+          ps.name, 
+          ps.position, 
+          PowersourceType[ps.type]
+        ));
+    });
+    this.datacenters = []
+    data.datacenters.forEach(dc => {
+      this.datacenters.push(
+        new Datacenter(
+          dc.id, 
+          dc.name, 
+          dc.position, 
+          dc.baseconsumption, 
+          dc.maxWorkLoad, 
+          dc.workLoadToPowerFac, 
+          dc.distToDataCenters,
+          []
+        ));
+    });
+    data.datacenters.forEach(dc => {
+      let sources = [];
+      dc.powersources.forEach(ps => {
+            sources.push(this.powersources[ps])
+          });
+      this.datacenters[dc.id].powersources = sources;
+    });
+    this.tasks = []
+    data.tasks.forEach(t => {
+      if(t.type == "CONTINUOUS"){
+        this.tasks.push(
+          new ContinuousTask(
+            t.id,
+            t.name,
+            t.workload,
+            t.mean,
+            t.variance
+          )
+        )
+      } else if(t.type == "DEADLINE"){
+        this.tasks.push(
+          new DeadlineTask(
+            t.id,
+            t.name,
+            t.workload,
+            t.duration,
+            t.deadline
+          )
+        )
+      }
+    });
+    console.log(this.datacenters)
     //this.tasks[0].assignTask(this.datacenters[0]);
     //this.tasks[1].assignTask(this.datacenters[0]);
     this.currentTime = 0;
@@ -321,6 +383,7 @@ enum PowersourceType {
 type powerAtTimeFunction = (time: number) => number;
 
 class Powersource {
+  id: number;
   name: string;
   position: [number, number];
   powerType: PowersourceType;
@@ -329,12 +392,14 @@ class Powersource {
   // estPowerAtTime: powerAtTimeFunction = (time: number) => 0;
   // estPowerOverTime: number[] = [];
   constructor(
+    id: number,
     name: string,
     position: [number, number],
     powerType: PowersourceType
 
     //estPowerOverTime: number[],
   ) {
+    this.id = id;
     this.name = name;
     this.position = position;
     this.powerType = powerType;
@@ -401,9 +466,10 @@ export class Task {
   assignTask(dc: Datacenter, currentTime: number): boolean {
     let dist = 0;
     if (this.scheduled, this.active) {
+      console.log(this.datacenter);
       dist = this.datacenter.distToDatacenters[dc.id];
     }
-    let currentLoad = dc.getCurrentWorkload(currentTime);
+    let currentLoad = dc.getCurrentPowerReq(currentTime);
     if (currentLoad + this.workLoad * dc.workloadToPowerFac <= dc.maxWorkload) {
       dc.tasks.push(this);
       this.datacenter = dc;
@@ -455,6 +521,8 @@ export class DeadlineTask extends Task {
 
     if (super.assignTask(dc, atTime)) {
       this.startTime = atTime;
+      if(atTime == this.startTime)
+        this.active = true;
       return true;
     } else {
       return false;
@@ -481,7 +549,7 @@ export class ContinuousTask extends Task {
     mean: number,
     variance: number
   ) {
-    super(id, name, workLoad, true);
+    super(id, name, workLoad, false);
     this.mean = mean;
     this.variance = variance;
     this.delay = 0;
