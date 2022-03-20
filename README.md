@@ -1,33 +1,11 @@
-# static-site-template
-Boilerplate template for the creation of static websites with TypeScript, SCSS, and HTML.
+# Data and Power
 
 ## Installation
-```bash
-git clone https://github.com/emensch/static-site-template
-```
-```bash
-cd static-site-template
-```
-```bash
-npm install
-```
 
-## Usage
-`src/` contains all of your site assets: scripts, styles, etc.
+Run `npm install`.
 
-**And then...**
+## Running
 
-### Development ###
-To run the built-in webpack dev server (with HMR!):
-```bash
-npm start 
-```
-Your site will be served on `http://localhost:1337/` :innocent:
+Run `npm run start`. This will start a web server.
 
-### Production ###
-To create a production-ready bundle:
-```bash
-npm run build
-```
-
-To deploy, serve the contents of `dist/` from a web server!
+Built files are stored in the dist directory, where they can be copied to a standard (e.g. nginx) webserver. All code is client side.
