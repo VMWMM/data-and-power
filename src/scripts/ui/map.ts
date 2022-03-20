@@ -155,7 +155,7 @@ export class DatacenterIcon extends MapIcon {
   }
 
   addNodeSpecificLines(): void {
-    this.powerLines = this.modelObject.powersources.map(powerSource => new Leaf.Polyline([powerSource.position, this.modelObject.position], { color: "#00AA00", interactive: false, opacity: 0 }));
+    this.powerLines = this.modelObject.powersources.map(powerSource => antPath([powerSource.position, this.modelObject.position], { color: "#00AA00", interactive: false, opacity: 0 }));
     this.powerLines.forEach(line => line.addTo(this.mapManager.map));
   }
 
