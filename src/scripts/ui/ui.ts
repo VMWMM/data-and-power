@@ -1,5 +1,5 @@
 import ContextMenu from '@mturco/context-menu';
-import { ContinuousTask, Datacenter, Powersource, PowersourceType, SimulationManager, Task } from '../simulation';
+import { ContinuousTask, Datacenter, DeadlineTask, Powersource, PowersourceType, SimulationManager, Task } from '../simulation';
 import { DatacenterIcon, MapManager } from "./map";
 
 class UIManager {
@@ -96,10 +96,21 @@ class UIManager {
           fn: (node: any) => {
             let unscheduledTaskNode = node as HTMLDivElement;
             let task = this.unscheduledTaskNodeMap.get(unscheduledTaskNode)!;
-            if(task.assignTask(datacenter))
-              unscheduledTaskNode.remove();
-            else
-              alert("Can't assign to this datacenter!")
+            if(task instanceof DeadlineTask){
+              if(task.assignDeadlineTask(
+                datacenter, 
+                this.simulationManager.currentTime)
+              ){
+                unscheduledTaskNode.remove();
+              } else {
+                alert("Can't assign to this datacenter!")
+              }
+            } else if(task instanceof ContinuousTask) {
+              if(task.assignTask(datacenter))
+                unscheduledTaskNode.remove();
+              else
+                alert("Can't assign to this datacenter!")
+            }
           }
         }
       }));

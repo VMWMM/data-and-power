@@ -60,7 +60,7 @@ class SimulationManager {
       ),
     ];
     this.tasks = [
-      new DeadlineTask(1, "AI-Training", 30, 5, 0, 10),
+      new DeadlineTask(1, "AI-Training", 30, 5, 10),
       new ContinuousTask(0, "OpenHPI-Website", 20, 20, 1),
     ];
     //this.tasks[0].assignTask(this.datacenters[0]);
@@ -208,6 +208,8 @@ class SimulationManager {
             this.points += this.removeTask(t, true);
           } else
             t.active = true;
+        } else if(t.deadline < atTime){
+          this.points += this.removeTask(t, true);
         }
       }
     });
@@ -337,20 +339,40 @@ export class Task {
 
 export class DeadlineTask extends Task {
   duration: number;
-  startTime: number;
+  startTime!: number;
   deadline: number;
   constructor(
     id: number,
     name: string,
     workLoad: number,
     duration: number,
-    startTime: number,
     deadline: number
   ) {
     super(id, name, workLoad, false);
-    this.startTime = startTime;
     this.duration = duration;
     this.deadline = deadline;
+  }
+
+  assignDeadlineTask(dc: Datacenter, atTime: number): boolean{
+    /*let currentLoad = dc.getCurrentWorkload();
+    if(currentLoad + this.workLoad * dc.workloadToPowerFac <= dc.maxWorkload) {
+      dc.tasks.push(this);
+      console.log(dc.tasks)
+      this.active = true;
+      this.datacenter = dc;
+      this.startTime = atTime;
+      this.scheduled = true;
+      return true;
+    } else {
+      return false;
+    }*/
+    
+    if(super.assignTask(dc)){
+      this.startTime = atTime;
+      return true;
+    } else {
+      return false;
+    }
   }
 
   getEndTime(): number {
@@ -373,6 +395,18 @@ export class ContinuousTask extends Task {
     this.mean = mean;
     this.variance = variance;
     this.delay = 0;
+  }
+
+  assignContinuousTask(dc: Datacenter): boolean {
+    let currentLoad = dc.getCurrentWorkload();
+    if(currentLoad + this.workLoad * dc.workloadToPowerFac <= dc.maxWorkload) {
+      dc.tasks.push(this);
+      this.datacenter = dc;
+      this.scheduled = true;
+      return true;
+    } else {
+      return false;
+    }
   }
 }
 
