@@ -7,7 +7,7 @@ class SimulationManager {
   points!: number;
   simulationStartDate!: Date;
 
-  constructor() { }
+  constructor() { this.points = 0; }
   initialize() {
 
     this.powersources = [

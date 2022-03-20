@@ -57,10 +57,13 @@ class UIManager {
 
   onNextTurnButtonPressed() {
     this.simulationManager.simulateTurn();
-    document.getElementById("score-span")!.innerHTML = this.simulationManager.points.toString();
+    document.getElementById("score-span")!.innerHTML = this.roundToTwo(this.simulationManager.points).toString();
     this.redraw();
   }
 
+  roundToTwo(num) {
+    return +(Math.round(num + "e+2") + "e-2");
+  }
   updateSelection(newSelection: Powersource | Datacenter) {
     if (this.selectedNode) {
       let prevSelectedIcon = this.mapManager.getIconForNode(this.selectedNode)!;
@@ -94,17 +97,17 @@ class UIManager {
           fn: (node: any) => {
             let unscheduledTaskNode = node as HTMLDivElement;
             let task = this.unscheduledTaskNodeMap.get(unscheduledTaskNode)!;
-            if(task instanceof DeadlineTask){
-              if(task.assignDeadlineTask(
-                datacenter, 
+            if (task instanceof DeadlineTask) {
+              if (task.assignDeadlineTask(
+                datacenter,
                 this.simulationManager.currentTime)
-              ){
+              ) {
                 unscheduledTaskNode.remove();
               } else {
                 alert("Can't assign to this datacenter!")
               }
-            } else if(task instanceof ContinuousTask) {
-              if(task.assignTask(datacenter))
+            } else if (task instanceof ContinuousTask) {
+              if (task.assignTask(datacenter))
                 unscheduledTaskNode.remove();
               else
                 alert("Can't assign to this datacenter!")
@@ -172,3 +175,4 @@ class ControlPanel {
 }
 
 export { UIManager };
+
