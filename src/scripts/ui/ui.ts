@@ -1,5 +1,5 @@
 import ContextMenu from '@mturco/context-menu';
-import { Datacenter, Powersource, PowersourceType, SimulationManager } from '../simulation';
+import { ContinuousTask, Datacenter, Powersource, PowersourceType, SimulationManager, Task } from '../simulation';
 import { DatacenterIcon, MapManager } from "./map";
 
 class UIManager {
@@ -81,7 +81,7 @@ class UIManager {
   redrawTaskQueue() {
     let taskQueue = document.getElementById("task-queue")!;
     taskQueue.innerHTML = ""; //Clear task queue
-    const unscheduledTasks = [{ name: "Webpage", continous: true }, { name: "Crunch numbers", continous: false }, { name: "Minecraft server", continous: true }, { name: "Hackaton Server", continous: true }, { name: "Hackaton Server", continous: true }, { name: "Black Friday Sale", continous: false }, { name: "Research Project", continous: false }, { name: "Matrix Server", continous: true }, { name: "Unnamed Task", continous: false }]; // Replace with simulation API call
+    const unscheduledTasks = this.simulationManager.tasks;
     unscheduledTasks.forEach(task => {
       let taskDiv = this.getUnscheduledTaskContainer(task);
       taskQueue.appendChild(taskDiv);
@@ -93,23 +93,29 @@ class UIManager {
         return {
           name: `Assign to ${datacenter.name}`,
           fn: (node: any) => {
-            // Assign to the data center
             let unscheduledTaskNode = node as HTMLDivElement;
+            let task = this.unscheduledTaskNodeMap.get(unscheduledTaskNode)!;
+            task.assignTask(datacenter);
             unscheduledTaskNode.remove();
-            // TODO: Do something in the simulation
           }
         }
       }));
   }
 
-  getUnscheduledTaskContainer(task: { name: string; continous: boolean; }): HTMLDivElement {
+  unscheduledTaskNodeMap!: Map<HTMLDivElement, Task>;
+
+  getUnscheduledTaskContainer(task: Task): HTMLDivElement {
     let node = document.createElement("div");
+    if (!this.unscheduledTaskNodeMap) {
+      this.unscheduledTaskNodeMap = new Map();
+    }
     node.classList.add("unscheduled-task");
-    node.classList.add(task.continous ? "unscheduled-task-continuous" : "unscheduled-task-deadline")
+    node.classList.add(task instanceof ContinuousTask ? "unscheduled-task-continuous" : "unscheduled-task-deadline")
     let title = document.createElement("p");
     title.classList.add("unscheduled-task-label");
     title.innerText = task.name;
     node.appendChild(title);
+    this.unscheduledTaskNodeMap.set(node, task);
     return node;
   }
 
