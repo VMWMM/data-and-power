@@ -1,0 +1,158 @@
+{
+  "powersources": [
+    {"id": 0,
+    "name": "German Bay Offshore Wind Park",
+    "position": [54.6, 7.2],
+    "type": "WIND"
+    },
+    {"id": 1,
+    "name": "Alpine Dams",
+    "position": [47.3, 10.1],
+    "type": "HYDRO"
+    },
+    {"id": 2,
+    "name": "Norwegian Hydropower",
+    "position": [61.9, 7.1],
+    "type": "HYDRO"
+    },
+    {"id": 3,
+    "name": "Cestas Solar Farm",
+    "position": [44.7, -0.8],
+    "type": "SUN"
+    },
+    {"id": 4,
+    "name": "Walney Offshore Wind Farm",
+    "position": [53.9, -3.57],
+    "type": "WIND"
+    },
+    {"id": 5,
+    "name": "Bavaria Solar Park",
+    "position": [49.2, 11.4],
+    "type": "SUN"
+    },
+    {"id": 6,
+    "name": "Solar Energy Gut Erlasee",
+    "position": [50.0, 9.9],
+    "type": "SUN"
+    },
+    {"id": 7,
+    "name": "Spanish Sun",
+    "position": [43.1, -4.9],
+    "type": "SUN"
+    },
+    {"id": 8,
+    "name": "Water Turbine Mecklenburgische Seenplatte",
+    "position": [43.1, -4.9],
+    "type": "HYDRO"
+    },
+    {"id": 9,
+    "name": "French Water Energy",
+    "position": [48.25,-1.36],
+    "type": "HYDRO"
+    },
+    {"id": 10,
+    "name": "Swedish Baltic Sea Winds",
+    "position": [56.7, 16.24],
+    "type": "WIND"
+    }],
+  "datacenters": [
+    {"id": 0,
+    "name": "Berlin",
+    "position": [52, 13],
+    "baseconsumption": 10,
+    "maxWorkLoad": 100,
+    "workLoadToPowerFac": 1,
+    "distToDataCenters": [1, 5],
+    "powersources": [2,0]
+    },
+    {"id": 1,
+    "name": "Paris",
+    "position": [48.8, 2.3],
+    "baseconsumption": 30,
+    "maxWorkLoad": 200,
+    "workLoadToPowerFac": 2,
+    "distToDataCenters": [1, 3],
+    "powersources": [3]
+    },
+    {"id": 2,
+    "name": "Ireland",
+    "position": [53.3, -6.6],
+    "baseconsumption": 5,
+    "maxWorkLoad":  50,
+    "workLoadToPowerFac": 1.5,
+    "distToDataCenters": [5, 3],
+    "powersources": [4]
+    }
+  ],
+  "tasks": [
+    {"id": 0,
+      "name": "OpenHPI-Website",
+      "type": "CONTINUOUS",
+      "workload": 20,
+      "mean": 20,
+      "variance": 1 
+    },
+    {"id": 1,
+      "name": "AI-Training",
+      "type": "DEADLINE",
+      "workload": 30,
+      "duration": 5,
+      "startTime":0,
+      "deadline": 10
+    },
+    {"id": 2,
+      "name": "Hackathon-Server",
+      "type": "CONTINUOUS",
+      "workload": 10,
+      "mean": 15,
+      "variance": 1.5 
+    },
+    {"id": 3,
+      "name": "My Webpage",
+      "type": "CONTINUOUS",
+      "workload": 5,
+      "mean": 7,
+      "variance": 0.5 
+    },
+    {"id": 4,
+      "name": "Crunch numbers",
+      "type": "DEADLINE",
+      "workload": 42,
+      "duration": 16,
+      "startTime":2,
+      "deadline": 25
+    },
+    {"id": 5,
+      "name": "Minecraft-Server",
+      "type": "CONTINUOUS",
+      "workload": 10,
+      "mean": 15,
+      "variance": 1.5 
+    },
+    {"id": 6,
+      "name": "Black Friday Sale",
+      "type": "DEADLINE",
+      "workload": 19,
+      "duration": 8,
+      "startTime":6,
+      "deadline": 20
+    },
+    {"id": 7,
+      "name": "Research Project",
+      "type": "DEADLINE",
+      "workload": 5,
+      "duration": 20,
+      "startTime":0,
+      "deadline": 30
+    },
+    {"id": 8,
+      "name": "Unnamed Task",
+      "type": "DEADLINE",
+      "workload": 10,
+      "duration": 7,
+      "startTime":10,
+      "deadline": 23
+    }
+  ],
+  "initialTimeStamp": "0"
+}

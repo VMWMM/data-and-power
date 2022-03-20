@@ -105,7 +105,7 @@ class UIManager {
                 alert("Can't assign to this datacenter!")
               }
             } else if (task instanceof ContinuousTask) {
-              if (task.assignTask(datacenter))
+              if (task.assignTask(datacenter, this.simulationManager.currentTime))
                 unscheduledTaskNode.remove();
               else
                 alert("Can't assign to this datacenter!")
