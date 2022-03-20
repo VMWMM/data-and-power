@@ -9,7 +9,7 @@ var layout = {
   showlegend: false,
   // hovermode: 'closest'
   //shapes??
-  shapes: []
+  shapes: [] as any
 };
 
 var shapeTaskIds: number[] = []; //shapeIndex -> taskId
