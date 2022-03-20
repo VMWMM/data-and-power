@@ -2,33 +2,63 @@
   "powersources": [
     {"id": 0,
     "name": "German Bay Offshore Wind Park",
-    "position": {"lat": 54.6, "lng": 7.2},
+    "position": [54.6, 7.2],
     "type": "WIND"
     },
     {"id": 1,
     "name": "Alpine Dams",
-    "position": {"lat": 47.3, "lng": 10.1},
+    "position": [47.3, 10.1],
     "type": "HYDRO"
     },
     {"id": 2,
     "name": "Norwegian Hydropower",
-    "position": {"lat": 61.9, "lng": 7.1},
+    "position": [61.9, 7.1],
     "type": "HYDRO"
     },
     {"id": 3,
-    "name": "French Sola",
-    "position": {"lat": 45.3, "lng": 1.6},
+    "name": "Cestas Solar Farm",
+    "position": [44.7, -0.8],
     "type": "SUN"
     },
     {"id": 4,
     "name": "Walney Offshore Wind Farm",
-    "position": {"lat": 53.9, "lng": -3.57},
+    "position": [53.9, -3.57],
+    "type": "WIND"
+    },
+    {"id": 5,
+    "name": "Bavaria Solar Park",
+    "position": [49.2, 11.4],
+    "type": "SUN"
+    },
+    {"id": 6,
+    "name": "Solar Energy Gut Erlasee",
+    "position": [50.0, 9.9],
+    "type": "SUN"
+    },
+    {"id": 7,
+    "name": "Spanish Sun",
+    "position": [43.1, -4.9],
+    "type": "SUN"
+    },
+    {"id": 8,
+    "name": "Water Turbine Mecklenburgische Seenplatte",
+    "position": [43.1, -4.9],
+    "type": "WATER"
+    },
+    {"id": 9,
+    "name": "French Water Energy",
+    "position": [48.25,-1.36],
+    "type": "WATER"
+    },
+    {"id": 10,
+    "name": "Swedish Baltic Sea Winds",
+    "position": [56.7, 16.24],
     "type": "WIND"
     }],
   "datacenters": [
     {"id": 0,
     "name": "Berlin",
-    "position": {"lat": 52, "lng": 13},
+    "position": [52, 13],
     "baseconsumption": 10,
     "maxWorkLoad": 100,
     "workLoadToPowerFac": 1,
@@ -37,7 +67,7 @@
     },
     {"id": 1,
     "name": "Paris",
-    "position": {"lat": 48.8, "lng": 2.3},
+    "position": [48.8, 2.3],
     "baseconsumption": 30,
     "maxWorkLoad": 200,
     "workLoadToPowerFac": 2,
@@ -46,7 +76,7 @@
     },
     {"id": 2,
     "name": "Ireland",
-    "position": {"lat": 53.3, "lng": -6.6},
+    "position": [53.3, -6.6],
     "baseconsumption": 5,
     "maxWorkLoad":  50,
     "workLoadToPowerFac": 1.5,
@@ -54,7 +84,7 @@
     "powersources": [4]
     }
   ],
-  "Tasks": [
+  "tasks": [
     {"id": 0,
       "name": "OpenHPI-Website",
       "type": "CONTINUOUS",
@@ -122,7 +152,7 @@
       "duration": 7,
       "startTime":10,
       "deadline": 23
-    },
+    }
   ],
   "initialTimeStamp": "0"
 }
