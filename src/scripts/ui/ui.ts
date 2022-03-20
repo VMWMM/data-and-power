@@ -1,7 +1,9 @@
 import ContextMenu from '@mturco/context-menu';
 import { ContinuousTask, Datacenter, DeadlineTask, Powersource, PowersourceType, SimulationManager, Task } from '../simulation';
 import { roundToTwo } from "../utils";
+import { DataCenterView } from "./DataCenterView";
 import { DatacenterIcon, MapManager } from "./map";
+
 
 class UIManager {
   simulationManager: SimulationManager;
@@ -9,6 +11,9 @@ class UIManager {
   controlPanel: ControlPanel;
   selectedNode: Datacenter | Powersource | null;
   nextTurnButton: HTMLButtonElement;
+
+
+  dataCenterView: DataCenterView;
 
   constructor(
     simulationManager: SimulationManager
@@ -22,6 +27,7 @@ class UIManager {
     this.mapManager.initIcons();
     this.selectedNode = null;
     this.controlPanel = new ControlPanel();
+    this.dataCenterView = new DataCenterView(this.simulationManager.datacenters[0]);
     this.mapManager.onDatacenterPressed = ((datacenter: Datacenter) => this.onDatacenterPressed(datacenter))
     this.mapManager.onPowersourcePressed = ((powersource: Powersource) => this.onPowersourcePressed(powersource));
     this.nextTurnButton = document.getElementById("next-turn-button")! as HTMLButtonElement;
@@ -59,6 +65,7 @@ class UIManager {
   onNextTurnButtonPressed() {
     this.simulationManager.simulateTurn();
     document.getElementById("score-span")!.innerHTML = roundToTwo(this.simulationManager.points).toString();
+    this.dataCenterView.setToDatacenter(null, this.simulationManager.currentTime);
     this.redraw();
   }
 
@@ -75,6 +82,7 @@ class UIManager {
       let icon = this.mapManager.getIconForDatacenter(newSelection)!;
       icon.drawConnectionsWithPowerSources();
       icon.isSelected = true;
+      this.dataCenterView.setToDatacenter(newSelection, this.simulationManager.currentTime);
     }
   }
 

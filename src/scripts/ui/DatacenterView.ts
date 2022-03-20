@@ -9,8 +9,10 @@ class DataCenterView {
 
   currentStartHour = 0;
 
+  currentDataCenter: Datacenter;
 
-  constructor() {
+  constructor(initDC: Datacenter) {
+    this.currentDataCenter = initDC;
     this.plotEl = document.getElementById('plotly')! as any;
     // layout.shapes.push();
     this.layout = {
@@ -22,16 +24,34 @@ class DataCenterView {
       //shapes??
       shapes: [] as any
     };
-    //move up maybe?
-    this.plotEl.on('plotly_click', function (data: any) {
-      // do something;
-      // (this as DataCenterView).clickedAtTime(data.points[0].x);
-      console.log("clicked at time ", data.points[0].x + 1);
-    });
+    // //move up maybe?
+    // (this.plotEl as any).on('plotly_click', ((data: any) => this.onClickAtGraph(data)));
+
+    // var config = { responsive: true, staticPlot: false, displayModeBar: false };
+    // var plot = Plotly.newPlot(this.plotEl, [{
+    //   x: [1, 2, 3, 4, 5],
+    //   y: [1, 2, 4, 8, 16]
+    // }], this.layout, config);
 
     //mouse click down in general
-    this.plotEl.onclick = function (e: any) {
-      if (e) {
+    this.plotEl.onclick = ((e: any) => this.onClick(e));
+
+    this.setToDatacenter(initDC, 0);
+  }
+
+  hasRequestedTimeTaskPlacement = true;
+  requestTaskTime() {//not clean
+    this.hasRequestedTimeTaskPlacement = true;
+  }
+  // onClickAtGraph(data: any) {
+  //   console.log("clicked at time ", data.points[0].x + 1);
+  // }
+  onClick(e: any) {
+    if (e) {
+      if (this.hasRequestedTimeTaskPlacement) {
+        this.hasRequestedTimeTaskPlacement = false;
+        console.log("clicked at time ", Math.floor(e.clientX - e.target.getBoundingClientRect().left) + this.currentStartHour);
+      } else {
         var rect = e.target.getBoundingClientRect();
         var x = e.clientX - rect.left; //x position within the element.
         var y = e.clientY - rect.top;  //y position within the element.
@@ -44,17 +64,23 @@ class DataCenterView {
           }
         }
       }
-    };
+
+    }
   }
-  reset(dc: Datacenter, time: number) {
+  setToDatacenter(dc: Datacenter | null, time: number) {
+    if (dc == null) {
+      dc = this.currentDataCenter;
+    } else {
+      this.currentDataCenter = dc as Datacenter;
+      dc = dc as Datacenter;
+    }
+
     this.layout.shapes = [];
     this.shapeToTask = []; //shapeIndex -> taskId
 
     this.plotTasks(dc, time);
 
-
     var config = { responsive: true, staticPlot: false, displayModeBar: false };
-
     var plot = Plotly.newPlot(this.plotEl, [{
       x: [1, 2, 3, 4, 5],
       y: [1, 2, 4, 8, 16]
