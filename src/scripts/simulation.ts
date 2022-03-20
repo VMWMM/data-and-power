@@ -6,7 +6,7 @@ class SimulationManager {
   coalFactor!: number;
   points!: number;
 
-  constructor() {}
+  constructor() { }
   initialize() {
     this.powersources = [
       new Powersource(
@@ -109,6 +109,7 @@ class SimulationManager {
   calculateCoalUsage(): number[] {
     var coalUsage: number[] = [];
     for (var i: number = 0; i < this.datacenters.length; i++) {
+      coalUsage[i] = 0;
       var d: Datacenter = this.datacenters[i];
       var workNeeded: number = d.getCurrentWorkload();
       let energyAvailable: number = 0;
@@ -134,13 +135,13 @@ class SimulationManager {
         let energyVal = Math.max(
           0,
           randn_bm() * variance +
-            p.powerHistory[this.currentTime] +
-            p.lastForecastDiff
+          p.powerHistory[this.currentTime] +
+          p.lastForecastDiff
         );
         p.lastForecastDiff = energyVal - p.powerHistory[this.currentTime];
         p.powerHistory[this.currentTime] = energyVal;
         energyAvailable += energyVal;
-        //p.makeNewForecasts();
+        p.makeNewForecast(this.currentTime);
       }
       if (workNeeded > 0) {
         energyAvailable -= d.baseConsumption;
@@ -153,6 +154,7 @@ class SimulationManager {
         coalUsage[i] = 0;
       }
     }
+    console.log(coalUsage);
     return coalUsage;
   }
 
@@ -170,31 +172,36 @@ class SimulationManager {
   }
 
   calculatePoints(coalUsed: number[]): number {
-    var points: number = 0;
+    var addPoints: number = 0;
     for (var i: number = 0; i < this.datacenters.length; i++) {
       var d: Datacenter = this.datacenters[i];
-      points -= coalUsed[i] * this.coalFactor;
+      addPoints -= coalUsed[i] * this.coalFactor;
+      console.log("coalus" + addPoints);
       for (var j: number = 0; j < d.tasks.length; j++) {
         var t = d.tasks[j];
         if (t instanceof ContinuousTask) {
-          points += (1 - 2 * t.delay) * t.workLoad;
-        } else {
+          addPoints += (1 - 2 * t.delay) * t.workLoad;
+          console.log("delay" + addPoints);
+        } else if (t instanceof DeadlineTask) {
           var finished: boolean = false;
           if (this.currentTime >= t.deadline) {
             if (t.startTime + t.duration <= t.deadline) {
               finished = true;
             }
-            points += this.removeTask(d.tasks[j], finished);
+            addPoints += this.removeTask(d.tasks[j], finished);
+            console.log("taskfin" + addPoints);
           } else {
             if (this.currentTime - t.duration > t.startTime) {
               finished = true;
-              points += this.removeTask(d.tasks[j], finished);
+              addPoints += this.removeTask(d.tasks[j], finished);
+              console.log("taskFin2" + addPoints);
             }
           }
         }
       }
     }
-    return points;
+    console.log("points:" + addPoints)
+    return addPoints;
   }
 
   //check for each task whether they are now active or already over
@@ -263,7 +270,7 @@ class Datacenter {
   getCurrentWorkload(): number {
     let sum = 0;
     this.tasks.forEach(t => {
-      if(t.active)
+      if (t.active)
         sum += t.workLoad;
     })
     return sum * this.workloadToPowerFac;
@@ -299,10 +306,47 @@ class Powersource {
     this.powerType = powerType;
     this.powerHistory = [];
     this.lastForecastDiff = 0;
+    switch (powerType) {
+      case PowersourceType.WIND:
+        this.powerHistory[0] = windDefault[0];
+        break;
+      case PowersourceType.THERMAL:
+        this.powerHistory[0] = thermalDefault[0];
+        break;
+      case PowersourceType.SUN:
+        this.powerHistory[0] = sunDefault[0];
+        break;
+      case PowersourceType.HYDRO:
+        this.powerHistory[0] = waterDefault[0];
+        break;
+      default:
+        break;
+    }
     //this.estPowerOverTime = [];
   }
 
-  makeNewForecast(): void {}
+  makeNewForecast(time: number): void {
+    for (let i = 0; i < 24; i++) {
+      let estimatedDiff = 0;
+      switch (this.powerType) {
+        case PowersourceType.WIND:
+          estimatedDiff = windDefault[(i + 1 + time) % 24] - windDefault[(i + time) % 24];
+          break;
+        case PowersourceType.THERMAL:
+          estimatedDiff = thermalDefault[(i + 1 + time) % 24] - thermalDefault[(i + time) % 24];
+          break;
+        case PowersourceType.SUN:
+          estimatedDiff = sunDefault[(i + 1 + time) % 24] - sunDefault[(i + time) % 24];
+          break;
+        case PowersourceType.HYDRO:
+          estimatedDiff = waterDefault[(i + 1 + time) % 24] - waterDefault[(i + time) % 24];
+          break;
+        default:
+          break;
+      }
+      this.powerHistory[i + 1] = estimatedDiff + this.powerHistory[i] + 0.5 * (24 - i) / 24 * this.lastForecastDiff;
+    }
+  }
 }
 
 class Task {
@@ -373,4 +417,10 @@ function randn_bm() {
   return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
 }
 
+const sunDefault: number[] = [0, 0, 0, 0, 0, 0, 0.08, 0.2, 0.3, 0.6, 1.3, 1.8, 2.2, 2.4, 2.5, 2.45, 2.4, 2.2, 1.9, 1.4, 0.8, 0.4, 0.07, 0];
+const thermalDefault: number[] = [0.8, 0.8, 0.8, 0.9, 0.85, 0.92, 1, 0.98, 1.1, 1.07, 1.05, 1.1, 1.2, 1.15, 1.3, 1.4, 1.34, 1.45, 1.5, 1.4, 1.2, 0.9, 0.75, 0.8];
+const windDefault: number[] = [1.2, 1.3, 1.6, 2.0, 2.2, 1.9, 1.6, 1.4, 1.0, 0.6, 0.5, 0.3, 0.3, 0.6, 0.7, 0.9, 1.0, 1.2, 1.3, 1.0, 0.7, 0.5, 0.3, 0.2];
+const waterDefault: number[] = [1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.0, 1.0, 1.25, 1.25, 1.5, 1.5, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25];
+
 export { SimulationManager, Datacenter, Powersource, PowersourceType };
+
