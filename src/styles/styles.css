@@ -1,3 +1,7 @@
+html, body {
+  height: 100%;
+}
+
 #game-board {
   overflow: hidden;
 }
@@ -47,12 +51,13 @@ body {
 #control-bar-time-controls {
   padding: 10px;
   background-color: white;
-  height: 50px;
+  min-height: fit-content;
   margin-bottom: 10px;
 }
 
 #control-bar-time-controls>p, button {
   display: inline-block;
+  margin: 3px;
 }
 
 #task-queue-container {

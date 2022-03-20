@@ -113,7 +113,7 @@ class UIManager {
   }
 
   redraw() {
-    // TODO: redraw map...
+    // TODO: redraw UI...
     this.redrawTaskQueue();
   }
 }
