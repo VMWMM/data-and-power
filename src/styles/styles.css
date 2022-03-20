@@ -83,15 +83,25 @@ body {
   /*display: inline-block;*/
   flex: 1;
   height: 50px;
-  border-width: 5px;
+  border-width: 2px;
   border-style: solid;
   border-radius: 2px;
   margin: 10px;
+  max-width: fit-content;
+}
+
+.unscheduled-task-continuous {
+  background-color: lightyellow;
+}
+
+.unscheduled-task-deadline {
+  background-color: lightsalmon;
 }
 
 .unscheduled-task-label {
   margin-left: 2px;
   margin-right: 2px;
+  pointer-events: none;
 }
 
 #footer {

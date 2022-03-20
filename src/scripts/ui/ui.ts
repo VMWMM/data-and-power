@@ -1,3 +1,4 @@
+import ContextMenu from '@mturco/context-menu';
 import { Datacenter, Powersource, PowersourceType, SimulationManager } from '../simulation';
 import { DatacenterIcon, MapManager } from "./map";
 
@@ -84,11 +85,26 @@ class UIManager {
       let taskDiv = this.getUnscheduledTaskContainer(task);
       taskQueue.appendChild(taskDiv);
     });
+
+
+    const menu = new ContextMenu('div .unscheduled-task',
+      this.simulationManager.datacenters.map(datacenter => {
+        return {
+          name: `Assign to ${datacenter.name}`,
+          fn: (node: any) => {
+            // Assign to the data center
+            let unscheduledTaskNode = node as HTMLDivElement;
+            unscheduledTaskNode.remove();
+            // TODO: Do something in the simulation
+          }
+        }
+      }));
   }
 
   getUnscheduledTaskContainer(task: { name: string; continous: boolean; }): HTMLDivElement {
     let node = document.createElement("div");
     node.classList.add("unscheduled-task");
+    node.classList.add(task.continous ? "unscheduled-task-continuous" : "unscheduled-task-deadline")
     let title = document.createElement("p");
     title.classList.add("unscheduled-task-label");
     title.innerText = task.name;
