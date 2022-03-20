@@ -1,5 +1,6 @@
 import * as Plotly from 'plotly.js';
-import { Datacenter, DeadlineTask, Task } from '../simulation';
+import { Datacenter, DeadlineTask, Powersource, Task } from '../simulation';
+import { UIManager } from './ui';
 
 
 class DataCenterView {
@@ -10,8 +11,9 @@ class DataCenterView {
   currentStartHour = 0;
 
   currentDataCenter: Datacenter;
-
-  constructor(initDC: Datacenter) {
+  ui: UIManager;
+  constructor(initDC: Datacenter, ui: any) {
+    this.ui = ui;
     this.currentDataCenter = initDC;
     this.plotEl = document.getElementById('plotly')! as any;
     // layout.shapes.push();
@@ -25,7 +27,7 @@ class DataCenterView {
       shapes: [] as any
     };
     // //move up maybe?
-    this.plotEl.on('plotly_click', ((data: any) => this.onClickAtGraph(data)));
+    // this.plotEl.on('plotly_click', ((data: any) => this.onClickAtGraph(data)));
 
     var config = { responsive: true, staticPlot: false, displayModeBar: false };
     var plot = Plotly.newPlot(this.plotEl, [{
@@ -68,12 +70,15 @@ class DataCenterView {
           let shape = this.layout.shapes[i];
           if (shape.x0 <= x && shape.x1 >= x && shape.y0 <= y && shape.y1 >= y) {
             console.log("Clicked on task ", shape.task.name);
+            this.shiftTask(shape.task);
           }
         }
       }
     }
   }
-
+  shiftTask(t: Task) {
+    this.ui.shiftTask(t);
+  }
 
   setToDatacenter(dc: Datacenter | null, time: number) {
     if (dc == null) {
@@ -82,7 +87,7 @@ class DataCenterView {
       this.currentDataCenter = dc as Datacenter;
       dc = dc as Datacenter;
     }
-
+    this.plotPower(dc, time);
     this.layout.shapes = [];
     this.shapeToTask = []; //shapeIndex -> taskId
 
@@ -120,8 +125,20 @@ class DataCenterView {
       });
     this.shapeToTask.push(task);
   }
+  plotPower(dc: Datacenter, time: number) {
+    this.layout.shapes = [];
+    this.shapeToTask = [];
+    //plot tasks at time
+    let x: number[] = [];
+    let y: number[] = [];
+    for (let i = 0; i < dc.powersources.length; i++) {
+      var source: Powersource = dc.powersources[i] as Powersource;
 
-  // plot
+      x[i] = i;
+      y[i] = source.powerHistory[time + i];
+    }
+    Plotly.newPlot(this.plotEl, [{ x: x, y: y }], { margin: { t: 0 } });
+  }
 
   plotTasks(dc: Datacenter, time: number) {
     this.layout.shapes = [];
@@ -145,3 +162,15 @@ class DataCenterView {
 }
 export { DataCenterView };
 
+
+// TESTER = document.getElementById('tester');
+
+// Plotly.newPlot(TESTER, [{
+
+//   x: [1, 2, 3, 4, 5],
+
+//   y: [1, 2, 4, 8, 16]
+// }], {
+
+//   margin: { t: 0 }
+// });
