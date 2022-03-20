@@ -142,6 +142,10 @@ class ScheduledTask extends Task {
   getEndTime(): number {
     return this.startTime + this.duration;
   }
+
+  isInProgress(atTime: number): boolean {
+    return this.startTime <= atTime && this.getEndTime() >= atTime;
+  }
 }
 
 /*
