@@ -549,7 +549,7 @@ export class ContinuousTask extends Task {
     mean: number,
     variance: number
   ) {
-    super(id, name, workLoad, true);
+    super(id, name, workLoad, false);
     this.mean = mean;
     this.variance = variance;
     this.delay = 0;
