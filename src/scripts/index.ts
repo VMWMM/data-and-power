@@ -4,6 +4,9 @@ import { UIManager } from "./ui/ui";
 
 var simulationManager = new SimulationManager();
 simulationManager.initialize();
-simulationManager.updateUI();
 
 var uiManager = new UIManager(simulationManager);
+
+for(let i=0; i<10; i++){
+  simulationManager.simulateTurn();
+}
