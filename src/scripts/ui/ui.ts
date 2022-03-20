@@ -123,48 +123,48 @@ class UIManager {
                 alert("Can't assign to this datacenter!")
               }
             } else if (task instanceof ContinuousTask) {
-              if (task.assignTask(datacenter)) {
+              if (task.assignTask(datacenter, this.simulationManager.currentTime))
                 unscheduledTaskNode.remove();
-                taskToSceduel = task;
-              }
-              else
-                alert("Can't assign to this datacenter!")
+              taskToSceduel = task;
             }
+            else
+              alert("Can't assign to this datacenter!")
           }
         }
+      }
       }));
+}
+
+unscheduledTaskNodeMap!: Map<HTMLDivElement, Task>;
+
+shiftTask(task: Task) {
+  this.taskToShift = task;
+}
+
+getUnscheduledTaskContainer(task: Task): HTMLDivElement {
+  let node = document.createElement("div");
+  if (!this.unscheduledTaskNodeMap) {
+    this.unscheduledTaskNodeMap = new Map();
   }
-
-  unscheduledTaskNodeMap!: Map<HTMLDivElement, Task>;
-
-  shiftTask(task: Task) {
-    this.taskToShift = task;
-  }
-
-  getUnscheduledTaskContainer(task: Task): HTMLDivElement {
-    let node = document.createElement("div");
-    if (!this.unscheduledTaskNodeMap) {
-      this.unscheduledTaskNodeMap = new Map();
-    }
-    node.classList.add("unscheduled-task");
-    node.classList.add(task instanceof ContinuousTask ? "unscheduled-task-continuous" : "unscheduled-task-deadline")
-    let title = document.createElement("p");
-    title.classList.add("unscheduled-task-label");
-    title.innerText = task.name;
-    node.appendChild(title);
-    this.unscheduledTaskNodeMap.set(node, task);
-    return node;
-  }
+  node.classList.add("unscheduled-task");
+  node.classList.add(task instanceof ContinuousTask ? "unscheduled-task-continuous" : "unscheduled-task-deadline")
+  let title = document.createElement("p");
+  title.classList.add("unscheduled-task-label");
+  title.innerText = task.name;
+  node.appendChild(title);
+  this.unscheduledTaskNodeMap.set(node, task);
+  return node;
+}
 
 
-  redraw() {
-    // TODO: redraw UI...
-    this.redrawTaskQueue();
-    this.mapManager.terminator.setTime(this.simulationManager.getDateFromSimTime());
-    let simDate = this.simulationManager.getDateFromSimTime();
-    this.dataCenterView.setToDatacenter(null, this.simulationManager.currentTime);
-    document.getElementById("time-span")!.innerHTML = simDate.toLocaleString();
-  }
+redraw() {
+  // TODO: redraw UI...
+  this.redrawTaskQueue();
+  this.mapManager.terminator.setTime(this.simulationManager.getDateFromSimTime());
+  let simDate = this.simulationManager.getDateFromSimTime();
+  this.dataCenterView.setToDatacenter(null, this.simulationManager.currentTime);
+  document.getElementById("time-span")!.innerHTML = simDate.toLocaleString();
+}
 }
 
 /*
