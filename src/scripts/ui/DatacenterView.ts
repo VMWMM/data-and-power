@@ -131,11 +131,14 @@ class DataCenterView {
     //plot tasks at time
     let x: number[] = [];
     let y: number[] = [];
+    let sum: number = 0;
     for (let i = 0; i < dc.powersources.length; i++) {
       var source: Powersource = dc.powersources[i] as Powersource;
-
+      for (let j = 0; j < 24; j++) {
+        y[i] += source.powerHistory[time + j];
+      }
       x[i] = i;
-      y[i] = source.powerHistory[time + i];
+
     }
     Plotly.newPlot(this.plotEl, [{ x: x, y: y }], { margin: { t: 0 } });
   }
