@@ -1,3 +1,4 @@
+import terminator from '@joergdietrich/leaflet.terminator';
 import * as Leaf from 'leaflet';
 import { antPath } from 'leaflet-ant-path';
 import { Datacenter, Powersource, PowersourceType } from '../simulation';
@@ -11,6 +12,7 @@ export class MapManager {
   powersourceIcons!: PowersourceIcon[];
   onDatacenterPressed: Function | undefined;
   onPowersourcePressed: Function | undefined;
+  terminator: any;
   constructor() {
     this.map = new Leaf.Map('map', {
       center: new Leaf.LatLng(49.023, 13.271),
@@ -20,6 +22,8 @@ export class MapManager {
     Leaf.tileLayer(tileServerUrl, {
       attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
     }).addTo(this.map);
+
+    this.initTerminator();
   }
 
   setComponents(datacenters: Datacenter[], powersources: Powersource[]) {
@@ -31,6 +35,10 @@ export class MapManager {
     this.datacenterIcons = this.datacenters.map(dc => new DatacenterIcon(dc, this));
     this.powersourceIcons = this.powersources.map(es => new PowersourceIcon(es, this));
     this.datacenterIcons.forEach(dci => dci.connect());
+  }
+
+  initTerminator() {
+    this.terminator = terminator({ resolution: 100 }).addTo(this.map);
   }
 
   getIconForDatacenter(datacenter: Datacenter) {
