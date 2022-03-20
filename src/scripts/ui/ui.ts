@@ -1,7 +1,7 @@
 import ContextMenu from '@mturco/context-menu';
 import { ContinuousTask, Datacenter, DeadlineTask, Powersource, PowersourceType, SimulationManager, Task } from '../simulation';
 import { roundToTwo } from "../utils";
-import { DataCenterView } from "./DataCenterView";
+import { DataCenterView } from "./DatacenterView";
 import { DatacenterIcon, MapManager } from "./map";
 
 
