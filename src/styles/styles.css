@@ -41,7 +41,18 @@ body {
 #control-bar-inner {
   padding: 10px;
   background-color: white;
-  height: 480px;
+  height: 410px;
+}
+
+#control-bar-time-controls {
+  padding: 10px;
+  background-color: white;
+  height: 50px;
+  margin-bottom: 10px;
+}
+
+#control-bar-time-controls>p, button {
+  display: inline-block;
 }
 
 

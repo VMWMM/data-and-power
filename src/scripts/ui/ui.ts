@@ -6,6 +6,7 @@ class UIManager {
   mapManager: MapManager;
   controlPanel: ControlPanel;
   selectedNode: Datacenter | Powersource | null;
+  nextTurnButton: HTMLButtonElement;
 
   constructor(
     simulationManager: SimulationManager
@@ -20,7 +21,9 @@ class UIManager {
     this.selectedNode = null;
     this.controlPanel = new ControlPanel();
     this.mapManager.onDatacenterPressed = ((datacenter: Datacenter) => this.onDatacenterPressed(datacenter))
-    this.mapManager.onPowersourcePressed = ((powersource: Powersource) => this.onPowersourcePressed(powersource))
+    this.mapManager.onPowersourcePressed = ((powersource: Powersource) => this.onPowersourcePressed(powersource));
+    this.nextTurnButton = document.getElementById("next-turn-button")! as HTMLButtonElement;
+    this.nextTurnButton.onclick = () => this.onNextTurnButtonPressed();
   }
 
   getDescriptionForPowerSource(powerSource: Powersource): string {
@@ -48,6 +51,11 @@ class UIManager {
     this.controlPanel.headline.innerHTML = powersource.name;
     this.controlPanel.desc.innerHTML = `A source of ${this.getDescriptionForPowerSource(powersource)} power.`;
     this.updateSelection(powersource);
+  }
+
+  onNextTurnButtonPressed() {
+    this.simulationManager.simulateTurn();
+    document.getElementById("time-span")!.innerHTML = this.simulationManager.currentTimeStamp.toString();
   }
 
   updateSelection(newSelection: Powersource | Datacenter) {
