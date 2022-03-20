@@ -1,3 +1,7 @@
+import * as sc from "@hebcal/solar-calc";
+
+
+let startDate: Date | null = null;
 class SimulationManager {
   datacenters!: Datacenter[];
   powersources!: Powersource[];
@@ -75,6 +79,9 @@ class SimulationManager {
     //this.tasks[1].assignTask(this.datacenters[0]);
     this.currentTime = 0;
     this.simulationStartDate = new Date(Date.now());
+    this.simulationStartDate.setHours(12);
+    this.simulationStartDate.setMinutes(0);
+    startDate = this.simulationStartDate;
     this.coalFactor = 10;
   }
 
@@ -164,7 +171,6 @@ class SimulationManager {
         coalUsage[i] = 0;
       }
     }
-    console.log(coalUsage);
     return coalUsage;
   }
 
@@ -342,7 +348,7 @@ class Powersource {
         this.powerHistory[0] = thermalDefault[0];
         break;
       case PowersourceType.SUN:
-        this.powerHistory[0] = sunDefault[0];
+        this.powerHistory[0] = getSunValue(0, this.position);
         break;
       case PowersourceType.HYDRO:
         this.powerHistory[0] = waterDefault[0];
@@ -364,7 +370,7 @@ class Powersource {
           estimatedDiff = thermalDefault[(i + 1 + time) % 24] - thermalDefault[(i + time) % 24];
           break;
         case PowersourceType.SUN:
-          estimatedDiff = sunDefault[(i + 1 + time) % 24] - sunDefault[(i + time) % 24];
+          estimatedDiff = getSunValue(i + 1 + time, this.position) - getSunValue(i + time, this.position);
           break;
         case PowersourceType.HYDRO:
           estimatedDiff = waterDefault[(i + 1 + time) % 24] - waterDefault[(i + time) % 24];
@@ -502,7 +508,22 @@ function randn_bm() {
   return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
 }
 
-const sunDefault: number[] = [0, 0, 0, 0, 0, 0, 0.08, 0.2, 0.3, 0.6, 1.3, 1.8, 2.2, 2.4, 2.5, 2.45, 2.4, 2.2, 1.9, 1.4, 0.8, 0.4, 0.07, 0];
+export function getSunValue(time: number, position: [number, number]) {
+  if (startDate) {
+    let date = new Date(startDate.toISOString());
+    date.setHours(date.getHours() + time);
+    let solarCalculator = new sc.SolarCalc(date, position[0], position[1]);
+    if (solarCalculator.sunrise.getTime() > date.getTime()) {
+
+      // Before and after sunrise, there is no sun
+      return 0;
+    } else {
+      // TODO: Add diminishing factors near night
+      return [0.9, 0.8, 0.8, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8][time % 24]
+    }
+  }
+  return 0;
+}
 const thermalDefault: number[] = [0.8, 0.8, 0.8, 0.9, 0.85, 0.92, 1, 0.98, 1.1, 1.07, 1.05, 1.1, 1.2, 1.15, 1.3, 1.4, 1.34, 1.45, 1.5, 1.4, 1.2, 0.9, 0.75, 0.8];
 const windDefault: number[] = [1.2, 1.3, 1.6, 2.0, 2.2, 1.9, 1.6, 1.4, 1.0, 0.6, 0.5, 0.3, 0.3, 0.6, 0.7, 0.9, 1.0, 1.2, 1.3, 1.0, 0.7, 0.5, 0.3, 0.2];
 const waterDefault: number[] = [1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.0, 1.0, 1.25, 1.25, 1.5, 1.5, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25];
