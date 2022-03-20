@@ -5,9 +5,11 @@ class SimulationManager {
   currentTime!: number;
   coalFactor!: number;
   points!: number;
+  simulationStartDate!: Date;
 
   constructor() { }
   initialize() {
+
     this.powersources = [
       new Powersource(
         "German Bay Offshore Wind Park",
@@ -66,6 +68,7 @@ class SimulationManager {
     //this.tasks[0].assignTask(this.datacenters[0]);
     //this.tasks[1].assignTask(this.datacenters[0]);
     this.currentTime = 0;
+    this.simulationStartDate = new Date(Date.now());
     this.coalFactor = 10;
   }
 
@@ -227,6 +230,12 @@ class SimulationManager {
       return -points;
     }
   }
+
+  getDateFromSimTime(): Date {
+    const date = new Date(this.simulationStartDate.toString());
+    date.setHours(date.getHours() + this.currentTime);
+    return date;
+  }
 }
 
 class Datacenter {
@@ -237,6 +246,7 @@ class Datacenter {
   maxWorkload: number;
   workloadToPowerFac: number; //efficiency
   distToDatacenters: number[];
+
   powersources: Powersource[];
   tasks: Task[];
 
@@ -259,6 +269,11 @@ class Datacenter {
     this.baseConsumption = baseConsumption;
     this.workloadToPowerFac = workloadToPowerFac;
     this.distToDatacenters = distToDatacenters;
+    this.tasks = [];
+  }
+  getCurrentPowerReq(atTimeStep: number): number {
+    return this.getCurrentWorkload(atTimeStep) * this.workloadToPowerFac + this.baseConsumption;
+
     this.powersources = powersources;
     this.tasks = [];
   }
@@ -296,6 +311,7 @@ class Powersource {
     name: string,
     position: [number, number],
     powerType: PowersourceType
+
     //estPowerOverTime: number[],
   ) {
     this.name = name;
@@ -378,6 +394,10 @@ export class DeadlineTask extends Task {
   getEndTime(): number {
     return this.startTime + this.duration;
   }
+
+  isInProgress(atTime: number): boolean {
+    return this.startTime <= atTime && this.getEndTime() >= atTime;
+  }
 }
 
 export class ContinuousTask extends Task {
@@ -418,4 +438,5 @@ function randn_bm() {
   return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
 }
 
-export { SimulationManager, Datacenter, Powersource, PowersourceType };
+export { SimulationManager, Datacenter, Powersource, PowersourceType, ScheduledTask };
+
