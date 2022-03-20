@@ -41,6 +41,30 @@ class SimulationManager {
           []
         ));
     });
+    this.tasks = []
+    data.tasks.forEach(t => {
+      if(data.type == "CONTINUOUS"){
+        this.tasks.push(
+          new ContinuousTask(
+            t.id,
+            t.name,
+            t.workload,
+            t.mean,
+            t.variance
+          )
+        )
+      } else if(data.type == "DEADLINE"){
+        this.tasks.push(
+          new DeadlineTask(
+            t.id,
+            t.name,
+            t.workload,
+            t.duration,
+            t.deadline
+          )
+        )
+      }
+    });
     data.datacenters.forEach(dc => {
       let sources = [];
       dc.powersources.forEach(ps => {
