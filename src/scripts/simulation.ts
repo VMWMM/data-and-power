@@ -6,8 +6,14 @@ class SimulationManager {
   coalFactor!: number;
   points!: number;
   simulationStartDate!: Date;
+  nextTaskID: number = 0;
 
   constructor() { this.points = 0; }
+  randomDeadLineTask(): DeadlineTask {
+    let duration = this.currentTime + Math.random() * 48 + 1;
+    let d = new DeadlineTask(this.nextTaskID, deadlineTaskNames[Math.round(Math.random() * (deadlineTaskNames.length - 1))], Math.round(Math.random() * 100 + 1), duration, duration * (Math.random() + 1.5));
+    return d;
+  }
   initialize() {
 
     this.powersources = [
@@ -484,6 +490,6 @@ const sunDefault: number[] = [0, 0, 0, 0, 0, 0, 0.08, 0.2, 0.3, 0.6, 1.3, 1.8, 2
 const thermalDefault: number[] = [0.8, 0.8, 0.8, 0.9, 0.85, 0.92, 1, 0.98, 1.1, 1.07, 1.05, 1.1, 1.2, 1.15, 1.3, 1.4, 1.34, 1.45, 1.5, 1.4, 1.2, 0.9, 0.75, 0.8];
 const windDefault: number[] = [1.2, 1.3, 1.6, 2.0, 2.2, 1.9, 1.6, 1.4, 1.0, 0.6, 0.5, 0.3, 0.3, 0.6, 0.7, 0.9, 1.0, 1.2, 1.3, 1.0, 0.7, 0.5, 0.3, 0.2];
 const waterDefault: number[] = [1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.0, 1.0, 1.25, 1.25, 1.5, 1.5, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25];
-
+const deadlineTaskNames: string[] = ["genome calculation", "Pi digits calculation", "Stockfish", "AI Training"]
 export { SimulationManager, Datacenter, Powersource, PowersourceType };
 
