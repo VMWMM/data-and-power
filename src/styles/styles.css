@@ -1,3 +1,7 @@
+html, body {
+  height: 100%;
+}
+
 #game-board {
   overflow: hidden;
 }
@@ -41,11 +45,76 @@ body {
 #control-bar-inner {
   padding: 10px;
   background-color: white;
-  height: 480px;
+  height: 400px;
 }
 
+#control-bar-time-controls {
+  padding: 10px;
+  background-color: white;
+  min-height: fit-content;
+  margin-bottom: 10px;
+}
+
+#control-bar-time-controls>p, button {
+  display: inline-block;
+  margin: 3px;
+}
+
+#task-queue-container {
+  background-color: white;
+  width: 100%;
+  height: 100px;
+  /* Should be relative value */
+  margin-top: 10px;
+}
+
+#task-queue-heading {
+  margin: auto;
+  margin-left: 10px;
+}
+
+#task-queue {
+  display: flex;
+  min-width: max-content;
+}
+
+#task-queue-scroll-holder {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.unscheduled-task {
+  border-color: #122C34;
+  /*display: inline-block;*/
+  flex: 1;
+  height: 50px;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: 2px;
+  margin: 10px;
+  max-width: fit-content;
+}
+
+.unscheduled-task-continuous {
+  background-color: lightyellow;
+}
+
+.unscheduled-task-deadline {
+  background-color: lightsalmon;
+}
+
+.unscheduled-task-label {
+  margin-left: 2px;
+  margin-right: 2px;
+  pointer-events: none;
+}
 
 #footer {
+  margin-top: 20px;
   color: gray;
   font-size: small;
+}
+
+.ContextMenu {
+  z-index: 20000;
 }

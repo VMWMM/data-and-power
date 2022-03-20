@@ -13,6 +13,7 @@
   },
   "author": "VMWMM",
   "dependencies": {
+    "@mturco/context-menu": "^2.0.0",
     "@types/geojson": "^7946.0.8",
     "@types/leaflet": "^1.7.9",
     "clean-webpack-plugin": "^2.0.2",
