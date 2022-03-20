@@ -13,7 +13,6 @@
   },
   "author": "VMWMM",
   "dependencies": {
-    "@hebcal/solar-calc": "^1.1.0",
     "@joergdietrich/leaflet.terminator": "^1.1.0",
     "@mturco/context-menu": "^2.0.0",
     "@types/geojson": "^7946.0.8",
