@@ -402,5 +402,5 @@ const thermalDefault: number[] = [0.8, 0.8, 0.8, 0.9, 0.85, 0.92, 1, 0.98, 1.1, 
 const windDefault: number[] = [1.2, 1.3, 1.6, 2.0, 2.2, 1.9, 1.6, 1.4, 1.0, 0.6, 0.5, 0.3, 0.3, 0.6, 0.7, 0.9, 1.0, 1.2, 1.3, 1.0, 0.7, 0.5, 0.3, 0.2];
 const waterDefault: number[] = [1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.0, 1.0, 1.25, 1.25, 1.5, 1.5, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25];
 const deadlineTaskNames: string[] = ["genome calculation", "Pi digits calculation", "Stockfish", "AI Training"]
-export { SimulationManager, Datacenter, Powersource, PowersourceType };
+export { SimulationManager, Datacenter, Powersource, PowersourceType, DeadlineTask, Task };
 
