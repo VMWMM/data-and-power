@@ -1,5 +1,6 @@
 import ContextMenu from '@mturco/context-menu';
 import { ContinuousTask, Datacenter, DeadlineTask, Powersource, PowersourceType, SimulationManager, Task } from '../simulation';
+import { roundToTwo } from "../utils";
 import { DatacenterIcon, MapManager } from "./map";
 
 class UIManager {
@@ -57,13 +58,10 @@ class UIManager {
 
   onNextTurnButtonPressed() {
     this.simulationManager.simulateTurn();
-    document.getElementById("score-span")!.innerHTML = this.roundToTwo(this.simulationManager.points).toString();
+    document.getElementById("score-span")!.innerHTML = roundToTwo(this.simulationManager.points).toString();
     this.redraw();
   }
 
-  roundToTwo(num) {
-    return +(Math.round(num + "e+2") + "e-2");
-  }
   updateSelection(newSelection: Powersource | Datacenter) {
     if (this.selectedNode) {
       let prevSelectedIcon = this.mapManager.getIconForNode(this.selectedNode)!;

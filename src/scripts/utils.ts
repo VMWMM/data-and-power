@@ -9,3 +9,8 @@ export async function ajax(path: string): Promise<string> {
     xhr.send();
   });
 }
+
+
+export function roundToTwo(num: number): number {
+  return Math.round(num * 100) / 100;
+}
