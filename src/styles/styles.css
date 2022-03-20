@@ -109,3 +109,7 @@ body {
   color: gray;
   font-size: small;
 }
+
+.ContextMenu {
+  z-index: 20000;
+}

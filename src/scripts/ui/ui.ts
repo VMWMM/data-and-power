@@ -87,7 +87,7 @@ class UIManager {
     });
 
 
-    const menu = new ContextMenu('div .unscheduled-task',
+    const menu = new ContextMenuUp('div .unscheduled-task',
       this.simulationManager.datacenters.map(datacenter => {
         return {
           name: `Assign to ${datacenter.name}`,
@@ -115,6 +115,28 @@ class UIManager {
   redraw() {
     // TODO: redraw map...
     this.redrawTaskQueue();
+  }
+}
+
+/*
+Subclassing is used here to move the context menu up, as it wouldn't otherwise be visible because it would be clipped by the page bottom.
+*/
+class ContextMenuUp extends ContextMenu {
+  constructor(
+    selector: string,
+    items: { name: string; fn: (node: any) => void; }[],
+    options = {
+      className: '',
+      minimalStyling: false,
+    },
+  ) {
+    super(selector, items, options);
+  }
+
+  show(e: any) {
+    super.show(e);
+    this.menu.style.left = `${e.pageX}px`;
+    this.menu.style.top = `${e.pageY - this.menu.clientHeight}px`;
   }
 }
 
