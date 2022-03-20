@@ -5,7 +5,7 @@ class SimulationManager {
   constructor() {
   }
   initialize() {
-    this.datacenters = [ 
+    this.datacenters = [
       new Datacenter(0, "Berlin", [52, 13], 10, 100, 1, [1, 5]),
       new Datacenter(1, "Paris", [48.8, 2.3], 30, 200, 2, [1, 3]),
       new Datacenter(2, "Ireland", [53.3, -6.6], 5, 50, 1.5, [5, 3])
@@ -31,7 +31,7 @@ class SimulationManager {
     //generate new incoming tasks
     //generate new func
   }
-  updateUI(){
+  updateUI() {
     //draw things
   }
 }
@@ -45,7 +45,7 @@ class Datacenter {
   workloadToPowerFac: number; //efficiency
   distToDatacenters: number[];
   //powersources: Powersource[];
-  //tasks: ScheduledTask[];
+  tasks: ScheduledTask[];
 
   //additional
   //add effectiency
@@ -68,10 +68,9 @@ class Datacenter {
     this.workloadToPowerFac = workloadToPowerFac;
     this.distToDatacenters = distToDatacenters;
     //this.powersources = powersources;
-    //this.tasks = [];
+    this.tasks = [];
   }
 
-  /*
   // TODO: Refactor!
   getCurrentWorkload(atTime: number): number {
     let sum = 0;
@@ -83,10 +82,9 @@ class Datacenter {
     return sum;
   }
 
-  getCurrentPowerReq(): number {
-    return this.getCurrentWorkload(this.curr) * this.workloadToPowerFac;
+  getCurrentPowerReq(atTimeStep: number): number {
+    return this.getCurrentWorkload(atTimeStep) * this.workloadToPowerFac + this.baseConsumption;
   }
-  */
 }
 
 enum PowersourceType {
@@ -110,7 +108,7 @@ class Powersource {
     position: [number, number],
     powerType: PowersourceType
     //estPowerOverTime: number[], 
-    ) {
+  ) {
     this.name = name;
     this.position = position;
     this.powerType = powerType;
@@ -155,4 +153,5 @@ function calculatePoints() {
 }
 */
 
-export { SimulationManager, Datacenter, Powersource, PowersourceType };
+export { SimulationManager, Datacenter, Powersource, PowersourceType, ScheduledTask };
+
