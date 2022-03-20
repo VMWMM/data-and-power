@@ -8,7 +8,7 @@ class SimulationManager {
   simulationStartDate!: Date;
   nextTaskID: number = 0;
 
-  constructor() { this.points = 0; }
+  constructor() { this.points = 0; this.currentTime = 0; }
   randomDeadLineTask(): DeadlineTask {
     let duration = this.currentTime + Math.random() * 48 + 1;
     let d = new DeadlineTask(this.nextTaskID, deadlineTaskNames[Math.round(Math.random() * (deadlineTaskNames.length - 1))], Math.round(Math.random() * 100 + 1), duration, duration * (Math.random() + 1.5));
@@ -102,7 +102,7 @@ class SimulationManager {
     console.log("Time: " + this.currentTime);
     this.datacenters.forEach((dc) => {
       console.log(
-        "Datacenter: " + dc.name + ", Workload: " + dc.getCurrentWorkload()
+        "Datacenter: " + dc.name + ", Workload: " + dc.getCurrentWorkload(this.currentTime)
       );
       dc.tasks.forEach((t) => {
         console.log(" Task: " + t.name);
@@ -121,7 +121,7 @@ class SimulationManager {
     for (var i: number = 0; i < this.datacenters.length; i++) {
       coalUsage[i] = 0;
       var d: Datacenter = this.datacenters[i];
-      var workNeeded: number = d.getCurrentWorkload();
+      var workNeeded: number = d.getCurrentWorkload(this.currentTime);
       let energyAvailable: number = 0;
       for (var j: number = 0; j < d.powersources.length; j++) {
         var p: Powersource = d.powersources[j];
@@ -282,18 +282,22 @@ class Datacenter {
     this.tasks = [];
   }
   getCurrentPowerReq(atTimeStep: number): number {
-    return this.getCurrentWorkload() * this.workloadToPowerFac + this.baseConsumption;
+    return this.getCurrentWorkload(atTimeStep) * this.workloadToPowerFac + this.baseConsumption;
     this.tasks = [];
   }
 
   //sum workload of all active tasks for datacenter
-  getCurrentWorkload(): number {
+  getCurrentWorkload(currentTime: number): number {
     let sum = 0;
 
     this.tasks.forEach(t => {
       if (t.active) {
         //TODO WENN zwischen Timesteps deadline task fertig, nicht die volle workload
-        sum += t.workLoad;
+        let factor = 1;
+        if (t instanceof DeadlineTask && t.startTime + t.duration <= currentTime) {
+          factor = 1 - (currentTime - t.startTime + t.duration);
+        }
+        sum += t.workLoad * factor;
       }
     })
     return sum;
@@ -368,7 +372,7 @@ class Powersource {
         default:
           break;
       }
-      this.powerHistory[i + 1] = estimatedDiff + this.powerHistory[i] + 0.5 * (24 - i) / 24 * this.lastForecastDiff;
+      this.powerHistory[time + i + 1] = estimatedDiff + this.powerHistory[time + i] + 0.5 * (24 - i) / 24 * this.lastForecastDiff;
     }
   }
 }
@@ -388,8 +392,8 @@ export class Task {
     this.scheduled = false;
   }
 
-  assignTask(dc: Datacenter): boolean {
-    let currentLoad = dc.getCurrentWorkload();
+  assignTask(dc: Datacenter, currentTime: number): boolean {
+    let currentLoad = dc.getCurrentWorkload(currentTime);
     if (currentLoad + this.workLoad * dc.workloadToPowerFac <= dc.maxWorkload) {
       dc.tasks.push(this);
       this.datacenter = dc;
@@ -418,7 +422,7 @@ export class DeadlineTask extends Task {
   }
 
   assignDeadlineTask(dc: Datacenter, atTime: number): boolean {
-    /*let currentLoad = dc.getCurrentWorkload();
+    /*let currentLoad = dc.getCurrentWorkload(currentTime);
     if(currentLoad + this.workLoad * dc.workloadToPowerFac <= dc.maxWorkload) {
       dc.tasks.push(this);
       console.log(dc.tasks)
@@ -431,7 +435,7 @@ export class DeadlineTask extends Task {
       return false;
     }*/
 
-    if (super.assignTask(dc)) {
+    if (super.assignTask(dc, atTime)) {
       this.startTime = atTime;
       return true;
     } else {
@@ -465,8 +469,8 @@ export class ContinuousTask extends Task {
     this.delay = 0;
   }
 
-  assignContinuousTask(dc: Datacenter): boolean {
-    let currentLoad = dc.getCurrentWorkload();
+  assignContinuousTask(dc: Datacenter, currentTime: number): boolean {
+    let currentLoad = dc.getCurrentWorkload(currentTime);
     if (currentLoad + this.workLoad * dc.workloadToPowerFac <= dc.maxWorkload) {
       dc.tasks.push(this);
       this.datacenter = dc;
