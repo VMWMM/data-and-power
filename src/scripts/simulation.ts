@@ -291,6 +291,8 @@ class SimulationManager {
         } else if (t.deadline < atTime) {
           this.points += this.removeTask(t, true);
         }
+      } else if(t instanceof ContinuousTask){
+        if(t.scheduled) t.active = true;
       }
     });
   }
