@@ -504,6 +504,8 @@ export class DeadlineTask extends Task {
 
     if (super.assignTask(dc, atTime)) {
       this.startTime = atTime;
+      if(atTime == this.startTime)
+        this.active = true;
       return true;
     } else {
       return false;
