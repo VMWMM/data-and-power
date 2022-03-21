@@ -1,6 +1,5 @@
-import * as sc from "@hebcal/solar-calc";
+import * as sc from '@hebcal/solar-calc';
 import * as data from '../simulationData.json';
-
 
 let startDate: Date | null = null;
 class SimulationManager {
@@ -13,10 +12,21 @@ class SimulationManager {
   simulationStartDate!: Date;
   nextTaskID: number = 0;
 
-  constructor() { this.points = 0; this.currentTime = 0; }
+  constructor() {
+    this.points = 0;
+    this.currentTime = 0;
+  }
   randomDeadLineTask(): DeadlineTask {
     let duration = this.currentTime + Math.random() * 48 + 1;
-    let d = new DeadlineTask(this.nextTaskID, deadlineTaskNames[Math.round(Math.random() * (deadlineTaskNames.length - 1))], Math.round(Math.random() * 100 + 1), duration, duration * (Math.random() + 1.5));
+    let d = new DeadlineTask(
+      this.nextTaskID,
+      deadlineTaskNames[
+        Math.round(Math.random() * (deadlineTaskNames.length - 1))
+      ],
+      Math.round(Math.random() * 100 + 1),
+      duration,
+      duration * (Math.random() + 1.5)
+    );
     return d;
   }
   initialize() {
@@ -75,68 +85,53 @@ class SimulationManager {
       ),
     ];
     */
-   /*
+    /*
        this.tasks = [
       new DeadlineTask(1, "AI-Training", 30, 5, 10),
       new ContinuousTask(0, "OpenHPI-Website", 20, 20, 1),
     ];
     */
-   this.powersources = [];
-    data.powersources.forEach(ps => {
+    this.powersources = [];
+    data.powersources.forEach((ps) => {
       this.powersources.push(
-        new Powersource(
-          ps.id, 
-          ps.name, 
-          ps.position, 
-          PowersourceType[ps.type]
-        ));
+        new Powersource(ps.id, ps.name, ps.position, PowersourceType[ps.type])
+      );
     });
-    this.datacenters = []
-    data.datacenters.forEach(dc => {
+    this.datacenters = [];
+    data.datacenters.forEach((dc) => {
       this.datacenters.push(
         new Datacenter(
-          dc.id, 
-          dc.name, 
-          dc.position, 
-          dc.baseconsumption, 
-          dc.maxWorkLoad, 
-          dc.workLoadToPowerFac, 
+          dc.id,
+          dc.name,
+          dc.position,
+          dc.baseconsumption,
+          dc.maxWorkLoad,
+          dc.workLoadToPowerFac,
           dc.distToDataCenters,
           []
-        ));
+        )
+      );
     });
-    data.datacenters.forEach(dc => {
+    data.datacenters.forEach((dc) => {
       let sources = [];
-      dc.powersources.forEach(ps => {
-            sources.push(this.powersources[ps])
-          });
+      dc.powersources.forEach((ps) => {
+        sources.push(this.powersources[ps]);
+      });
       this.datacenters[dc.id].powersources = sources;
     });
-    this.tasks = []
-    data.tasks.forEach(t => {
-      if(t.type == "CONTINUOUS"){
+    this.tasks = [];
+    data.tasks.forEach((t) => {
+      if (t.type == 'CONTINUOUS') {
         this.tasks.push(
-          new ContinuousTask(
-            t.id,
-            t.name,
-            t.workload,
-            t.mean,
-            t.variance
-          )
-        )
-      } else if(t.type == "DEADLINE"){
+          new ContinuousTask(t.id, t.name, t.workload, t.mean, t.variance)
+        );
+      } else if (t.type == 'DEADLINE') {
         this.tasks.push(
-          new DeadlineTask(
-            t.id,
-            t.name,
-            t.workload,
-            t.duration,
-            t.deadline
-          )
-        )
+          new DeadlineTask(t.id, t.name, t.workload, t.duration, t.deadline)
+        );
       }
     });
-    console.log(this.datacenters)
+    console.log(this.datacenters);
     //this.tasks[0].assignTask(this.datacenters[0]);
     //this.tasks[1].assignTask(this.datacenters[0]);
     this.currentTime = 0;
@@ -168,16 +163,19 @@ class SimulationManager {
 
   //helper function as we dont have dashboards yet
   printState() {
-    console.log("Time: " + this.currentTime);
+    console.log('Time: ' + this.currentTime);
     this.datacenters.forEach((dc) => {
       console.log(
-        "Datacenter: " + dc.name + ", Workload: " + dc.getCurrentWorkload(this.currentTime)
+        'Datacenter: ' +
+          dc.name +
+          ', Workload: ' +
+          dc.getCurrentWorkload(this.currentTime)
       );
       dc.tasks.forEach((t) => {
-        console.log(" Task: " + t.name);
+        console.log(' Task: ' + t.name);
       });
     });
-    console.log("Score: " + this.points)
+    console.log('Score: ' + this.points);
   }
 
   //not yet used since we dont update any of the visuals based on the logic
@@ -214,8 +212,8 @@ class SimulationManager {
         let energyVal = Math.max(
           0,
           randn_bm() * variance +
-          p.powerHistory[this.currentTime] +
-          p.lastForecastDiff
+            p.powerHistory[this.currentTime] +
+            p.lastForecastDiff
         );
         p.lastForecastDiff = energyVal - p.powerHistory[this.currentTime];
         p.powerHistory[this.currentTime] = energyVal;
@@ -274,7 +272,7 @@ class SimulationManager {
         }
       }
     }
-    console.log("additional points:" + addPoints);
+    console.log('additional points:' + addPoints);
     return addPoints;
   }
 
@@ -286,13 +284,12 @@ class SimulationManager {
         if (t.startTime <= atTime) {
           if (t.startTime + t.duration <= atTime) {
             this.points += this.removeTask(t, true);
-          } else
-            t.active = true;
+          } else t.active = true;
         } else if (t.deadline < atTime) {
           this.points += this.removeTask(t, true);
         }
-      } else if(t instanceof ContinuousTask){
-        if(t.scheduled) t.active = true;
+      } else if (t instanceof ContinuousTask) {
+        if (t.scheduled) t.active = true;
       }
     });
   }
@@ -352,7 +349,10 @@ class Datacenter {
     this.tasks = [];
   }
   getCurrentPowerReq(atTimeStep: number): number {
-    return this.getCurrentWorkload(atTimeStep) * this.workloadToPowerFac + this.baseConsumption;
+    return (
+      this.getCurrentWorkload(atTimeStep) * this.workloadToPowerFac +
+      this.baseConsumption
+    );
     this.tasks = [];
   }
 
@@ -360,16 +360,19 @@ class Datacenter {
   getCurrentWorkload(currentTime: number): number {
     let sum = 0;
 
-    this.tasks.forEach(t => {
+    this.tasks.forEach((t) => {
       if (t.active) {
         //TODO WENN zwischen Timesteps deadline task fertig, nicht die volle workload
         let factor = 1;
-        if (t instanceof DeadlineTask && t.startTime + t.duration <= currentTime) {
+        if (
+          t instanceof DeadlineTask &&
+          t.startTime + t.duration <= currentTime
+        ) {
           factor = 1 - (currentTime - t.startTime + t.duration);
         }
         sum += t.workLoad * factor;
       }
-    })
+    });
     return sum;
   }
 }
@@ -431,21 +434,30 @@ class Powersource {
       let estimatedDiff = 0;
       switch (this.powerType) {
         case PowersourceType.WIND:
-          estimatedDiff = windDefault[(i + 1 + time) % 24] - windDefault[(i + time) % 24];
+          estimatedDiff =
+            windDefault[(i + 1 + time) % 24] - windDefault[(i + time) % 24];
           break;
         case PowersourceType.THERMAL:
-          estimatedDiff = thermalDefault[(i + 1 + time) % 24] - thermalDefault[(i + time) % 24];
+          estimatedDiff =
+            thermalDefault[(i + 1 + time) % 24] -
+            thermalDefault[(i + time) % 24];
           break;
         case PowersourceType.SUN:
-          estimatedDiff = getSunValue(i + 1 + time, this.position) - getSunValue(i + time, this.position);
+          estimatedDiff =
+            getSunValue(i + 1 + time, this.position) -
+            getSunValue(i + time, this.position);
           break;
         case PowersourceType.HYDRO:
-          estimatedDiff = waterDefault[(i + 1 + time) % 24] - waterDefault[(i + time) % 24];
+          estimatedDiff =
+            waterDefault[(i + 1 + time) % 24] - waterDefault[(i + time) % 24];
           break;
         default:
           break;
       }
-      this.powerHistory[time + i + 1] = estimatedDiff + this.powerHistory[time + i] + 0.5 * (24 - i) / 24 * this.lastForecastDiff;
+      this.powerHistory[time + i + 1] =
+        estimatedDiff +
+        this.powerHistory[time + i] +
+        ((0.5 * (24 - i)) / 24) * this.lastForecastDiff;
     }
   }
 }
@@ -467,7 +479,7 @@ export class Task {
 
   assignTask(dc: Datacenter, currentTime: number): boolean {
     let dist = 0;
-    if (this.scheduled, this.active) {
+    if ((this.scheduled, this.active)) {
       console.log(this.datacenter);
       dist = this.datacenter.distToDatacenters[dc.id];
     }
@@ -479,8 +491,7 @@ export class Task {
       let delay = 2 + 0.1 * dist * dist;
       if (this instanceof ContinuousTask) {
         this.delay = delay;
-      }
-      else if (this instanceof DeadlineTask) {
+      } else if (this instanceof DeadlineTask) {
         this.startTime += delay;
       }
 
@@ -523,8 +534,7 @@ export class DeadlineTask extends Task {
 
     if (super.assignTask(dc, atTime)) {
       this.startTime = atTime;
-      if(atTime == this.startTime)
-        this.active = true;
+      if (atTime == this.startTime) this.active = true;
       return true;
     } else {
       return false;
@@ -584,19 +594,34 @@ export function getSunValue(time: number, position: [number, number]) {
     date.setHours(date.getHours() + time);
     let solarCalculator = new sc.SolarCalc(date, position[0], position[1]);
     if (solarCalculator.sunrise.getTime() > date.getTime()) {
-
       // Before and after sunrise, there is no sun
       return 0;
     } else {
       // TODO: Add diminishing factors near night
-      return [0.9, 0.8, 0.8, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8][time % 24]
+      return [
+        0.9, 0.8, 0.8, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.1, 0.1, 0.1,
+        0.1, 0.1, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8,
+      ][time % 24];
     }
   }
   return 0;
 }
-const thermalDefault: number[] = [0.8, 0.8, 0.8, 0.9, 0.85, 0.92, 1, 0.98, 1.1, 1.07, 1.05, 1.1, 1.2, 1.15, 1.3, 1.4, 1.34, 1.45, 1.5, 1.4, 1.2, 0.9, 0.75, 0.8];
-const windDefault: number[] = [1.2, 1.3, 1.6, 2.0, 2.2, 1.9, 1.6, 1.4, 1.0, 0.6, 0.5, 0.3, 0.3, 0.6, 0.7, 0.9, 1.0, 1.2, 1.3, 1.0, 0.7, 0.5, 0.3, 0.2];
-const waterDefault: number[] = [1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.0, 1.0, 1.25, 1.25, 1.5, 1.5, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25];
-const deadlineTaskNames: string[] = ["genome calculation", "Pi digits calculation", "Stockfish", "AI Training"]
+const thermalDefault: number[] = [
+  0.8, 0.8, 0.8, 0.9, 0.85, 0.92, 1, 0.98, 1.1, 1.07, 1.05, 1.1, 1.2, 1.15, 1.3,
+  1.4, 1.34, 1.45, 1.5, 1.4, 1.2, 0.9, 0.75, 0.8,
+];
+const windDefault: number[] = [
+  1.2, 1.3, 1.6, 2.0, 2.2, 1.9, 1.6, 1.4, 1.0, 0.6, 0.5, 0.3, 0.3, 0.6, 0.7,
+  0.9, 1.0, 1.2, 1.3, 1.0, 0.7, 0.5, 0.3, 0.2,
+];
+const waterDefault: number[] = [
+  1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.0, 1.0, 1.25, 1.25,
+  1.5, 1.5, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25,
+];
+const deadlineTaskNames: string[] = [
+  'genome calculation',
+  'Pi digits calculation',
+  'Stockfish',
+  'AI Training',
+];
 export { SimulationManager, Datacenter, Powersource, PowersourceType };
-

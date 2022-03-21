@@ -2,7 +2,6 @@ import * as Plotly from 'plotly.js';
 import { Datacenter, DeadlineTask, Powersource, Task } from '../simulation';
 import { UIManager } from './ui';
 
-
 class DataCenterView {
   plotEl: any;
   layout: any;
@@ -24,16 +23,23 @@ class DataCenterView {
       showlegend: false,
       // hovermode: 'closest'
       //shapes??
-      shapes: [] as any
+      shapes: [] as any,
     };
     // //move up maybe?
     // this.plotEl.on('plotly_click', ((data: any) => this.onClickAtGraph(data)));
 
     var config = { responsive: true, staticPlot: false, displayModeBar: false };
-    var plot = Plotly.newPlot(this.plotEl, [{
-      x: [1, 2, 3, 4, 5],
-      y: [1, 2, 4, 8, 16]
-    }], this.layout, config);
+    var plot = Plotly.newPlot(
+      this.plotEl,
+      [
+        {
+          x: [1, 2, 3, 4, 5],
+          y: [1, 2, 4, 8, 16],
+        },
+      ],
+      this.layout,
+      config
+    );
     // this.plotEl.onclick = ((e: any) => this.onClick(e));
     // var plot = Plotly.newPlot(this.plotEl, [{
     //   x: [1, 2, 3, 4, 5],
@@ -45,31 +51,39 @@ class DataCenterView {
     this.setToDatacenter(initDC, 0);
   }
 
-
   hasRequestedTimeTaskPlacement = true;
-  requestTaskTime() {//not clean
+  requestTaskTime() {
+    //not clean
     this.hasRequestedTimeTaskPlacement = true;
   }
   onClickAtGraph(data: any) {
-    console.log("clicked at time ", data.points[0].x + 1);
+    console.log('clicked at time ', data.points[0].x + 1);
   }
 
   onClick(e: any) {
     if (e) {
       if (this.hasRequestedTimeTaskPlacement) {
         this.hasRequestedTimeTaskPlacement = false;
-        console.log("clicked at time ", Math.floor(e.clientX - e.target.getBoundingClientRect().left) + this.currentStartHour);
-
+        console.log(
+          'clicked at time ',
+          Math.floor(e.clientX - e.target.getBoundingClientRect().left) +
+            this.currentStartHour
+        );
       } else {
         var rect = e.target.getBoundingClientRect();
         var x = e.clientX - rect.left; //x position within the element.
-        var y = e.clientY - rect.top;  //y position within the element.
-        console.log("Left? : " + x + " ; Top? : " + y + ".");
+        var y = e.clientY - rect.top; //y position within the element.
+        console.log('Left? : ' + x + ' ; Top? : ' + y + '.');
         //find in which task the click happened
         for (let i = 0; i < this.layout.shapes.length; i++) {
           let shape = this.layout.shapes[i];
-          if (shape.x0 <= x && shape.x1 >= x && shape.y0 <= y && shape.y1 >= y) {
-            console.log("Clicked on task ", shape.task.name);
+          if (
+            shape.x0 <= x &&
+            shape.x1 >= x &&
+            shape.y0 <= y &&
+            shape.y1 >= y
+          ) {
+            console.log('Clicked on task ', shape.task.name);
             this.shiftTask(shape.task);
           }
         }
@@ -94,35 +108,48 @@ class DataCenterView {
     this.plotTasks(dc, time);
 
     var config = { responsive: true, staticPlot: false, displayModeBar: false };
-    var plot = Plotly.newPlot(this.plotEl, [{
-      x: [1, 2, 3, 4, 5],
-      y: [1, 2, 4, 8, 16]
-    }], this.layout, config);
+    var plot = Plotly.newPlot(
+      this.plotEl,
+      [
+        {
+          x: [1, 2, 3, 4, 5],
+          y: [1, 2, 4, 8, 16],
+        },
+      ],
+      this.layout,
+      config
+    );
   }
 
-  addRect(x: number, y: number, w: number, h: number, color: string, isInProgress: boolean, task: Task): void {
+  addRect(
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    color: string,
+    isInProgress: boolean,
+    task: Task
+  ): void {
     let dashType = isInProgress ? 'dot' : 'solid';
-    this.layout.shapes.push(
-      {
-        type: 'rect',
-        // x-reference is assigned to the x-values
-        // xref: 'x',
-        // // y-reference is assigned to the plot paper [0,1]
-        // yref: 'paper',
-        x0: x,
-        y0: y,
-        x1: x + w,
-        y1: y + h,
-        fillcolor: color,
-        opacity: 0.2,
-        dash: dashType
-        //   line: {
-        //     color: 'rgb(55, 128, 191)',
-        //     width: 3
-        //     //dash: 'dot'
-        //   }
-
-      });
+    this.layout.shapes.push({
+      type: 'rect',
+      // x-reference is assigned to the x-values
+      // xref: 'x',
+      // // y-reference is assigned to the plot paper [0,1]
+      // yref: 'paper',
+      x0: x,
+      y0: y,
+      x1: x + w,
+      y1: y + h,
+      fillcolor: color,
+      opacity: 0.2,
+      dash: dashType,
+      //   line: {
+      //     color: 'rgb(55, 128, 191)',
+      //     width: 3
+      //     //dash: 'dot'
+      //   }
+    });
     this.shapeToTask.push(task);
   }
   plotPower(dc: Datacenter, time: number) {
@@ -138,7 +165,6 @@ class DataCenterView {
         y[i] += source.powerHistory[time + j];
       }
       x[i] = i;
-
     }
     Plotly.newPlot(this.plotEl, [{ x: x, y: y }], { margin: { t: 0 } });
   }
@@ -153,10 +179,26 @@ class DataCenterView {
       if (dc.tasks[i] instanceof DeadlineTask) {
         var task = dc.tasks[i] as DeadlineTask;
         if (task.startTime >= time && task.duration + task.startTime < time) {
-          this.addRect(task.startTime, taskLoadSoFar, task.duration, task.workLoad, '#ff0000', task.active, task);
+          this.addRect(
+            task.startTime,
+            taskLoadSoFar,
+            task.duration,
+            task.workLoad,
+            '#ff0000',
+            task.active,
+            task
+          );
           taskLoadSoFar += task.workLoad;
         } else {
-          this.addRect(0, taskLoadSoFar, 24, dc.tasks[i].workLoad, '#ff0000', dc.tasks[i].active, dc.tasks[i]);
+          this.addRect(
+            0,
+            taskLoadSoFar,
+            24,
+            dc.tasks[i].workLoad,
+            '#ff0000',
+            dc.tasks[i].active,
+            dc.tasks[i]
+          );
           taskLoadSoFar += task.workLoad;
         }
       }
@@ -164,7 +206,6 @@ class DataCenterView {
   }
 }
 export { DataCenterView };
-
 
 // TESTER = document.getElementById('tester');
 

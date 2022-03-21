@@ -18,9 +18,10 @@ export class MapManager {
       center: new Leaf.LatLng(49.023, 13.271),
       zoom: 5,
     });
-    const tileServerUrl = "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png";
+    const tileServerUrl = 'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png';
     Leaf.tileLayer(tileServerUrl, {
-      attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(this.map);
 
     this.initTerminator();
@@ -32,9 +33,13 @@ export class MapManager {
   }
 
   initIcons() {
-    this.datacenterIcons = this.datacenters.map(dc => new DatacenterIcon(dc, this));
-    this.powersourceIcons = this.powersources.map(es => new PowersourceIcon(es, this));
-    this.datacenterIcons.forEach(dci => dci.connect());
+    this.datacenterIcons = this.datacenters.map(
+      (dc) => new DatacenterIcon(dc, this)
+    );
+    this.powersourceIcons = this.powersources.map(
+      (es) => new PowersourceIcon(es, this)
+    );
+    this.datacenterIcons.forEach((dci) => dci.connect());
   }
 
   initTerminator() {
@@ -42,20 +47,21 @@ export class MapManager {
   }
 
   getIconForDatacenter(datacenter: Datacenter) {
-    return this.datacenterIcons.find(dci => dci.modelObject == datacenter)
+    return this.datacenterIcons.find((dci) => dci.modelObject == datacenter);
   }
 
   getIconForPowerSource(powersource: Powersource) {
-    return this.powersourceIcons.find(psi => psi.modelObject == powersource)
+    return this.powersourceIcons.find((psi) => psi.modelObject == powersource);
   }
 
   getIconForNode(node: Powersource | Datacenter) {
-    return [...this.powersourceIcons, ... this.datacenterIcons].find(n => n.modelObject == node)
+    return [...this.powersourceIcons, ...this.datacenterIcons].find(
+      (n) => n.modelObject == node
+    );
   }
 }
 
 abstract class MapIcon {
-
   marker: Leaf.Marker | undefined;
   overlay: Leaf.SVGOverlay | undefined;
   modelObject!: Datacenter | Powersource;
@@ -68,7 +74,7 @@ abstract class MapIcon {
   }
 
   get iconPath(): string {
-    return "subclass responsibility!";
+    return 'subclass responsibility!';
   }
 
   async getIcon(): Promise<string> {
@@ -88,20 +94,31 @@ abstract class MapIcon {
       this.modelObject.position[0],
       this.modelObject.position[1]
     );
-    let corner1 = new Leaf.LatLng(position.lat - this.width / 2, position.lng - this.height / 2);
-    let corner2 = new Leaf.LatLng(position.lat + this.width / 2, position.lng + this.height / 2);
+    let corner1 = new Leaf.LatLng(
+      position.lat - this.width / 2,
+      position.lng - this.height / 2
+    );
+    let corner2 = new Leaf.LatLng(
+      position.lat + this.width / 2,
+      position.lng + this.height / 2
+    );
     return new Leaf.LatLngBounds(corner1, corner2);
   }
 
   async createOverlay() {
-    let svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svgElement.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-    svgElement.setAttribute("viewBox", "0 0 250 220");
+    let svgElement = document.createElementNS(
+      'http://www.w3.org/2000/svg',
+      'svg'
+    );
+    svgElement.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    svgElement.setAttribute('viewBox', '0 0 250 220');
 
     let icon = await this.getIcon();
     svgElement.innerHTML = icon;
     let svgElementBounds = this.bounds;
-    this.overlay = new Leaf.SVGOverlay(svgElement, svgElementBounds, { interactive: true });
+    this.overlay = new Leaf.SVGOverlay(svgElement, svgElementBounds, {
+      interactive: true,
+    });
 
     this.overlay.setZIndex(10);
     this.addNodeSpecificLines();
@@ -109,12 +126,10 @@ abstract class MapIcon {
     this.createEventListeners();
   }
 
-  addNodeSpecificLines() {
-
-  }
+  addNodeSpecificLines() {}
 
   createEventListeners() {
-    throw new Error("Subclass responsibility")
+    throw new Error('Subclass responsibility');
   }
 
   generateMarker() {
@@ -122,8 +137,13 @@ abstract class MapIcon {
       this.marker.remove();
     }
 
-    this.marker = new Leaf.Marker(this.modelObject.position, { opacity: 0.001 });
-    this.marker.bindTooltip(this.modelObject.name, { permanent: true, className: "data-center-tooltip" });
+    this.marker = new Leaf.Marker(this.modelObject.position, {
+      opacity: 0.001,
+    });
+    this.marker.bindTooltip(this.modelObject.name, {
+      permanent: true,
+      className: 'data-center-tooltip',
+    });
     this.marker.addTo(this.mapManager.map);
   }
 }
@@ -140,39 +160,55 @@ export class DatacenterIcon extends MapIcon {
 
   createEventListeners() {
     if (this.overlay) {
-      this.overlay.on("click", event => { Leaf.DomEvent.stopPropagation(event); if (this.mapManager.onDatacenterPressed) this.mapManager.onDatacenterPressed(this.modelObject) });
-      this.overlay.on("mouseover", () => {
-        this.drawConnectionsWithPowerSources()
-      }
-      );
-      this.overlay.on("mouseout", () => { if (!this.isSelected) { this.removeConnectionsWithPowerSources() } });
+      this.overlay.on('click', (event) => {
+        Leaf.DomEvent.stopPropagation(event);
+        if (this.mapManager.onDatacenterPressed)
+          this.mapManager.onDatacenterPressed(this.modelObject);
+      });
+      this.overlay.on('mouseover', () => {
+        this.drawConnectionsWithPowerSources();
+      });
+      this.overlay.on('mouseout', () => {
+        if (!this.isSelected) {
+          this.removeConnectionsWithPowerSources();
+        }
+      });
     }
   }
 
   get iconPath(): string {
-    return "/assets/datacenter.svg"
+    return '/assets/datacenter.svg';
   }
 
   connect() {
     this.lines = this.mapManager.datacenterIcons
-      .filter(dcI => dcI != this)
-      .map(dataCenterIcon =>
-        antPath([dataCenterIcon.modelObject.position, this.modelObject.position], { color: "#0088AA" })
+      .filter((dcI) => dcI != this)
+      .map((dataCenterIcon) =>
+        antPath(
+          [dataCenterIcon.modelObject.position, this.modelObject.position],
+          { color: '#0088AA' }
+        )
       );
-    this.lines.forEach(line => line.addTo(this.mapManager.map));
+    this.lines.forEach((line) => line.addTo(this.mapManager.map));
   }
 
   addNodeSpecificLines(): void {
-    this.powerLines = this.modelObject.powersources.map(powerSource => antPath([powerSource.position, this.modelObject.position], { color: "#00AA00", interactive: false, opacity: 0 }));
-    this.powerLines.forEach(line => line.addTo(this.mapManager.map));
+    this.powerLines = this.modelObject.powersources.map((powerSource) =>
+      antPath([powerSource.position, this.modelObject.position], {
+        color: '#00AA00',
+        interactive: false,
+        opacity: 0,
+      })
+    );
+    this.powerLines.forEach((line) => line.addTo(this.mapManager.map));
   }
 
   drawConnectionsWithPowerSources() {
-    this.powerLines.forEach(powerLine => powerLine.setStyle({ opacity: 1 }));
+    this.powerLines.forEach((powerLine) => powerLine.setStyle({ opacity: 1 }));
   }
 
   removeConnectionsWithPowerSources() {
-    this.powerLines.forEach(powerLine => powerLine.setStyle({ opacity: 0 }));
+    this.powerLines.forEach((powerLine) => powerLine.setStyle({ opacity: 0 }));
   }
 }
 
@@ -186,29 +222,30 @@ export class PowersourceIcon extends MapIcon {
 
   createEventListeners(): void {
     if (this.overlay) {
-      this.overlay.on("click", event => {
+      this.overlay.on('click', (event) => {
         Leaf.DomEvent.stopPropagation(event);
-        if (this.mapManager.onPowersourcePressed) this.mapManager.onPowersourcePressed(this.modelObject)
-      })
+        if (this.mapManager.onPowersourcePressed)
+          this.mapManager.onPowersourcePressed(this.modelObject);
+      });
     }
   }
 
   get iconPath(): string {
     switch (this.modelObject.powerType) {
       case PowersourceType.SUN: {
-        return "/assets/sun.svg"
+        return '/assets/sun.svg';
       }
       case PowersourceType.WIND: {
-        return "/assets/wind.svg"
+        return '/assets/wind.svg';
       }
       case PowersourceType.HYDRO: {
-        return "/assets/hydro.svg"
+        return '/assets/hydro.svg';
       }
       case PowersourceType.THERMAL: {
-        return "/assets/hydro.svg"
+        return '/assets/hydro.svg';
       }
       case PowersourceType.OTHER: {
-        return "/assets/hydro.svg"
+        return '/assets/hydro.svg';
       }
     }
   }
