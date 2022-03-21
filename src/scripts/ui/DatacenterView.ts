@@ -132,13 +132,14 @@ class DataCenterView {
     let x: number[] = [];
     let y: number[] = [];
     let sum: number = 0;
-    for (let i = 0; i < dc.powersources.length; i++) {
-      var source: Powersource = dc.powersources[i] as Powersource;
-      for (let j = 0; j < 24; j++) {
-        y[i] += source.powerHistory[time + j];
-      }
-      x[i] = i;
+    for (let j = 0; j < 24; j++) {
+      x[j] = j;
+      y[j] = 0;
+      for (let i = 0; i < dc.powersources.length; i++) {
+        var source: Powersource = dc.powersources[i] as Powersource;
 
+        y[j] += Math.max(source.powerHistory[time + j], 0);
+      }
     }
     Plotly.newPlot(this.plotEl, [{ x: x, y: y }], { margin: { t: 0 } });
   }
