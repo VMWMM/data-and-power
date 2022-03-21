@@ -126,7 +126,7 @@ abstract class MapIcon {
     this.createEventListeners();
   }
 
-  addNodeSpecificLines() {}
+  addNodeSpecificLines() { }
 
   createEventListeners() {
     throw new Error('Subclass responsibility');
@@ -177,7 +177,7 @@ export class DatacenterIcon extends MapIcon {
   }
 
   get iconPath(): string {
-    return '/assets/datacenter.svg';
+    return 'assets/datacenter.svg';
   }
 
   connect() {
@@ -233,19 +233,19 @@ export class PowersourceIcon extends MapIcon {
   get iconPath(): string {
     switch (this.modelObject.powerType) {
       case PowersourceType.SUN: {
-        return '/assets/sun.svg';
+        return 'assets/sun.svg';
       }
       case PowersourceType.WIND: {
-        return '/assets/wind.svg';
+        return 'assets/wind.svg';
       }
       case PowersourceType.HYDRO: {
-        return '/assets/hydro.svg';
+        return 'assets/hydro.svg';
       }
       case PowersourceType.THERMAL: {
-        return '/assets/hydro.svg';
+        return 'assets/hydro.svg';
       }
       case PowersourceType.OTHER: {
-        return '/assets/hydro.svg';
+        return 'assets/hydro.svg';
       }
     }
   }
