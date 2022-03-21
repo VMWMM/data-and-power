@@ -1,5 +1,9 @@
 # Data and Power
 
+[![Build and Deploy](https://github.com/VMWMM/data-and-power/actions/workflows/pages.yml/badge.svg)](https://github.com/VMWMM/data-and-power/actions/workflows/pages.yml)
+
+Try it out [here](https://vmwmm.github.io/data-and-power/).
+
 ## Installation
 
 Run `npm install`.
