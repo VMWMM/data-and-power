@@ -1,7 +1,9 @@
 import ContextMenu from '@mturco/context-menu';
 import { ContinuousTask, Datacenter, DeadlineTask, Powersource, PowersourceType, SimulationManager, Task } from '../simulation';
 import { roundToTwo } from "../utils";
+import { DataCenterView } from "./DatacenterView";
 import { DatacenterIcon, MapManager } from "./map";
+
 
 class UIManager {
   simulationManager: SimulationManager;
@@ -10,6 +12,10 @@ class UIManager {
   selectedNode: Datacenter | Powersource | null;
   nextTurnButton: HTMLButtonElement;
 
+
+  dataCenterView: DataCenterView;
+
+  taskToShift: Task | null;
   constructor(
     simulationManager: SimulationManager
   ) {
@@ -22,10 +28,13 @@ class UIManager {
     this.mapManager.initIcons();
     this.selectedNode = null;
     this.controlPanel = new ControlPanel();
+    this.dataCenterView = new DataCenterView(this.simulationManager.datacenters[0], this);
     this.mapManager.onDatacenterPressed = ((datacenter: Datacenter) => this.onDatacenterPressed(datacenter))
     this.mapManager.onPowersourcePressed = ((powersource: Powersource) => this.onPowersourcePressed(powersource));
     this.nextTurnButton = document.getElementById("next-turn-button")! as HTMLButtonElement;
     this.nextTurnButton.onclick = () => this.onNextTurnButtonPressed();
+
+    this.taskToShift = null;
     this.redraw();
   }
 
@@ -59,6 +68,7 @@ class UIManager {
   onNextTurnButtonPressed() {
     this.simulationManager.simulateTurn();
     document.getElementById("score-span")!.innerHTML = roundToTwo(this.simulationManager.points).toString();
+    this.dataCenterView.setToDatacenter(null, this.simulationManager.currentTime);
     this.redraw();
   }
 
@@ -75,6 +85,12 @@ class UIManager {
       let icon = this.mapManager.getIconForDatacenter(newSelection)!;
       icon.drawConnectionsWithPowerSources();
       icon.isSelected = true;
+      if (this.taskToShift != null) {
+        this.taskToShift.assignTask(newSelection, this.simulationManager.currentTime);
+        this.taskToShift = null;
+      }
+      this.dataCenterView.setToDatacenter(newSelection, this.simulationManager.currentTime);
+      this.dataCenterView.plotPower(newSelection, this.simulationManager.currentTime);
     }
   }
 
@@ -86,7 +102,7 @@ class UIManager {
       let taskDiv = this.getUnscheduledTaskContainer(task);
       taskQueue.appendChild(taskDiv);
     });
-
+    var taskToSceduel;
 
     const menu = new ContextMenuUp('div .unscheduled-task',
       this.simulationManager.datacenters.map(datacenter => {
@@ -101,12 +117,16 @@ class UIManager {
                 this.simulationManager.currentTime)
               ) {
                 unscheduledTaskNode.remove();
+                taskToSceduel = task;
+
               } else {
                 alert("Can't assign to this datacenter!")
               }
             } else if (task instanceof ContinuousTask) {
-              if (task.assignTask(datacenter, this.simulationManager.currentTime))
+              if (task.assignTask(datacenter, this.simulationManager.currentTime)) {
                 unscheduledTaskNode.remove();
+                taskToSceduel = task;
+              }
               else
                 alert("Can't assign to this datacenter!")
             }
@@ -116,6 +136,10 @@ class UIManager {
   }
 
   unscheduledTaskNodeMap!: Map<HTMLDivElement, Task>;
+
+  shiftTask(task: Task) {
+    this.taskToShift = task;
+  }
 
   getUnscheduledTaskContainer(task: Task): HTMLDivElement {
     let node = document.createElement("div");
@@ -132,11 +156,13 @@ class UIManager {
     return node;
   }
 
+
   redraw() {
     // TODO: redraw UI...
     this.redrawTaskQueue();
     this.mapManager.terminator.setTime(this.simulationManager.getDateFromSimTime());
     let simDate = this.simulationManager.getDateFromSimTime();
+    this.dataCenterView.setToDatacenter(null, this.simulationManager.currentTime);
     document.getElementById("time-span")!.innerHTML = simDate.toLocaleString();
   }
 }
