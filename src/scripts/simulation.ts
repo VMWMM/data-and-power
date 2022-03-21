@@ -21,7 +21,7 @@ class SimulationManager {
     let d = new DeadlineTask(
       this.nextTaskID,
       deadlineTaskNames[
-        Math.round(Math.random() * (deadlineTaskNames.length - 1))
+      Math.round(Math.random() * (deadlineTaskNames.length - 1))
       ],
       Math.round(Math.random() * 100 + 1),
       duration,
@@ -30,107 +30,84 @@ class SimulationManager {
     return d;
   }
   initialize() {
-    /*
-    this.powersources = [
-      new Powersource(
-        "German Bay Offshore Wind Park",
-        [54.6, 7.2],
-        PowersourceType.WIND
-      ),
-      new Powersource("Alpine Dams", [47.3, 10.1], PowersourceType.HYDRO),
-      new Powersource(
-        "Norwegian Hydropower",
-        [61.9, 7.1],
-        PowersourceType.HYDRO
-      ),
-      new Powersource("French Solar", [45.3, 1.6], PowersourceType.SUN),
-      new Powersource(
-        "Walney Offshore Wind Farm",
-        [53.9, -3.57],
-        PowersourceType.WIND
-      ),
-    ];
-    */
-    /*
-    this.datacenters = [
-      new Datacenter(
-        0,
-        "Berlin",
-        [52, 13],
-        10,
-        100,
-        1,
-        [0, 1, 5],
-        [this.powersources[2], this.powersources[0]]
-      ),
-      new Datacenter(
-        1,
-        "Paris",
-        [48.8, 2.3],
-        30,
-        200,
-        2,
-        [1, 0, 3],
-        [this.powersources[3]]
-      ),
-      new Datacenter(
-        2,
-        "Ireland",
-        [53.3, -6.6],
-        5,
-        50,
-        1.5,
-        [5, 3, 0],
-        [this.powersources[4]]
-      ),
-    ];
-    */
-    /*
-       this.tasks = [
-      new DeadlineTask(1, "AI-Training", 30, 5, 10),
-      new ContinuousTask(0, "OpenHPI-Website", 20, 20, 1),
-    ];
-    */
     this.powersources = [];
-    data.powersources.forEach((ps) => {
-      this.powersources.push(
-        new Powersource(ps.id, ps.name, ps.position, PowersourceType[ps.type])
-      );
-    });
+    data.powersources.forEach(
+      (ps: {
+        id: number;
+        name: string;
+        position: number[];
+        type: string;
+      }) => {
+        this.powersources.push(
+          new Powersource(
+            ps.id,
+            ps.name,
+            [ps.position[0], ps.position[1]],
+            strToPowersourceType(ps.type)
+          )
+        );
+      }
+    );
     this.datacenters = [];
-    data.datacenters.forEach((dc) => {
-      this.datacenters.push(
-        new Datacenter(
-          dc.id,
-          dc.name,
-          dc.position,
-          dc.baseconsumption,
-          dc.maxWorkLoad,
-          dc.workLoadToPowerFac,
-          dc.distToDataCenters,
-          []
-        )
-      );
-    });
-    data.datacenters.forEach((dc) => {
-      let sources = [];
-      dc.powersources.forEach((ps) => {
-        sources.push(this.powersources[ps]);
+    data.datacenters.forEach(
+      (dc: {
+        id: number;
+        name: string;
+        position: number[];
+        baseconsumption: number;
+        maxWorkLoad: number;
+        workLoadToPowerFac: number;
+        distToDataCenters: number[];
+      }) => {
+        this.datacenters.push(
+          new Datacenter(
+            dc.id,
+            dc.name,
+            [dc.position[0], dc.position[1]],
+            dc.baseconsumption,
+            dc.maxWorkLoad,
+            dc.workLoadToPowerFac,
+            dc.distToDataCenters,
+            []
+          )
+        );
+      }
+    );
+    data.datacenters.forEach((dc: { id: number; powersources: number[] }) => {
+      let sources: Powersource[] = [];
+      dc.powersources.forEach((powerSourceId) => {
+        sources.push(this.powersources[powerSourceId]);
       });
       this.datacenters[dc.id].powersources = sources;
     });
     this.tasks = [];
-    data.tasks.forEach((t) => {
-      if (t.type == 'CONTINUOUS') {
-        this.tasks.push(
-          new ContinuousTask(t.id, t.name, t.workload, t.mean, t.variance)
-        );
-      } else if (t.type == 'DEADLINE') {
-        this.tasks.push(
-          new DeadlineTask(t.id, t.name, t.workload, t.duration, t.deadline)
-        );
+    data.tasks.forEach(
+      (t: {
+        id: number;
+        name: string;
+        workload: number;
+        mean: number;
+        variance: number;
+        type: string;
+      } | {
+        id: number;
+        name: string;
+        workload: number;
+        duration: number;
+        deadline: number;
+        type: string
+      }) => {
+        if (t.type == 'CONTINUOUS' && "mean" in t) {
+          this.tasks.push(
+            new ContinuousTask(t.id, t.name, t.workload, t.mean!, t.variance!)
+          );
+        } else if (t.type == 'DEADLINE' && "duration" in t) {
+          this.tasks.push(
+            new DeadlineTask(t.id, t.name, t.workload, t.duration!, t.deadline!)
+          );
+        }
       }
-    });
+    );
     console.log(this.datacenters);
     //this.tasks[0].assignTask(this.datacenters[0]);
     //this.tasks[1].assignTask(this.datacenters[0]);
@@ -167,9 +144,9 @@ class SimulationManager {
     this.datacenters.forEach((dc) => {
       console.log(
         'Datacenter: ' +
-          dc.name +
-          ', Workload: ' +
-          dc.getCurrentWorkload(this.currentTime)
+        dc.name +
+        ', Workload: ' +
+        dc.getCurrentWorkload(this.currentTime)
       );
       dc.tasks.forEach((t) => {
         console.log(' Task: ' + t.name);
@@ -212,8 +189,8 @@ class SimulationManager {
         let energyVal = Math.max(
           0,
           randn_bm() * variance +
-            p.powerHistory[this.currentTime] +
-            p.lastForecastDiff
+          p.powerHistory[this.currentTime] +
+          p.lastForecastDiff
         );
         p.lastForecastDiff = energyVal - p.powerHistory[this.currentTime];
         p.powerHistory[this.currentTime] = energyVal;
@@ -383,6 +360,14 @@ enum PowersourceType {
   HYDRO,
   THERMAL,
   OTHER,
+}
+
+function strToPowersourceType(name: string) {
+  if (name == 'SUN') return PowersourceType.SUN;
+  if (name == 'WIND') return PowersourceType.WIND;
+  if (name == 'HYDRO') return PowersourceType.HYDRO;
+  if (name == 'THERMAL') return PowersourceType.THERMAL;
+  return PowersourceType.OTHER;
 }
 
 type powerAtTimeFunction = (time: number) => number;
@@ -593,7 +578,8 @@ export function getSunValue(time: number, position: [number, number]) {
     let date = new Date(startDate.toISOString());
     date.setHours(date.getHours() + time);
     let solarCalculator = new sc.SolarCalc(date, position[0], position[1]);
-    if (solarCalculator.sunrise.getTime() > date.getTime()) {
+    let sunrise = solarCalculator.sunrise;
+    if ((sunrise instanceof Date) && sunrise.getTime() > date.getTime()) {
       // Before and after sunrise, there is no sun
       return 0;
     } else {
