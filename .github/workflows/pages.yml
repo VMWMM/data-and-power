@@ -14,6 +14,7 @@ jobs:
         continue-on-error: true
         run: |
           npm ci
+          cp -r assets dist
           npm run build
 
       - name: Deploy 🚀
