@@ -6,7 +6,7 @@ import {
   Powersource,
   PowersourceType,
   SimulationManager,
-  Task,
+  Task
 } from '../simulation';
 import { roundToTwo } from '../utils';
 import { DataCenterView } from './DatacenterView';
@@ -69,6 +69,7 @@ class UIManager {
     this.controlPanel.headline.innerHTML = datacenter.name;
     this.controlPanel.desc.innerHTML = `A data center.`;
     this.updateSelection(datacenter);
+    this.controlPanel.info.innerHTML = "";
   }
   onPowersourcePressed(powersource: Powersource) {
     this.controlPanel.headline.innerHTML = powersource.name;
@@ -76,6 +77,7 @@ class UIManager {
       powersource
     )} power.`;
     this.updateSelection(powersource);
+    this.controlPanel.info.innerHTML = `Power produced in last hour: ${roundToTwo(powersource.powerProduced[this.simulationManager.currentTime - 1])}</br>Power forecasted for last hour: ${roundToTwo(powersource.powerForecasted[this.simulationManager.currentTime - 1])}`;
   }
 
   onNextTurnButtonPressed() {
@@ -131,7 +133,7 @@ class UIManager {
       let taskDiv = this.getUnscheduledTaskContainer(task);
       taskQueue.appendChild(taskDiv);
     });
-    var taskToSceduel;
+    let taskToSchedule;
 
     const menu = new ContextMenuUp(
       'div .unscheduled-task',
@@ -149,7 +151,7 @@ class UIManager {
                 )
               ) {
                 unscheduledTaskNode.remove();
-                taskToSceduel = task;
+                taskToSchedule = task;
               } else {
                 alert("Can't assign to this datacenter!");
               }
@@ -158,7 +160,7 @@ class UIManager {
                 task.assignTask(datacenter, this.simulationManager.currentTime)
               ) {
                 unscheduledTaskNode.remove();
-                taskToSceduel = task;
+                taskToSchedule = task;
               } else alert("Can't assign to this datacenter!");
             }
           },
@@ -204,6 +206,9 @@ class UIManager {
       this.simulationManager.currentTime
     );
     document.getElementById('time-span')!.innerHTML = simDate.toLocaleString();
+    if (this.selectedNode instanceof Powersource) {
+      this.controlPanel.info.innerHTML = `Power produced in last hour: ${roundToTwo(this.selectedNode.powerProduced[this.simulationManager.currentTime - 1])}</br>Power forecasted for last hour: ${roundToTwo(this.selectedNode.powerForecasted[this.simulationManager.currentTime - 1])}`;
+    }
   }
 }
 
@@ -232,9 +237,11 @@ class ContextMenuUp extends ContextMenu {
 class ControlPanel {
   headline: HTMLElement;
   desc: HTMLElement;
+  info: HTMLElement;
   constructor() {
     this.headline = document.getElementById('control-bar-headline')!;
     this.desc = document.getElementById('control-bar-desc')!;
+    this.info = document.getElementById('control-bar-info')!;
   }
 }
 

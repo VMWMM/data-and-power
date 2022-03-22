@@ -14,7 +14,6 @@
   },
   "author": "VMWMM",
   "dependencies": {
-    "@hebcal/solar-calc": "^1.1.0",
     "@joergdietrich/leaflet.terminator": "^1.1.0",
     "@mturco/context-menu": "^2.0.0",
     "@types/geojson": "^7946.0.8",
@@ -31,6 +30,7 @@
     "mini-css-extract-plugin": "^0.6.0",
     "optimize-css-assets-webpack-plugin": "^5.0.1",
     "plotly.js": "^2.11.1",
+    "suncalc": "^1.9.0",
     "ts-loader": "^6.0.0",
     "typescript": "^3.4.5",
     "webpack": "^4.30.0",
@@ -38,6 +38,7 @@
     "webpack-dev-server": "^3.3.1"
   },
   "devDependencies": {
+    "@types/suncalc": "^1.8.1",
     "prettier": "^2.6.0"
   }
 }

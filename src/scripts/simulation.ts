@@ -1,4 +1,4 @@
-import * as sc from '@hebcal/solar-calc';
+import * as SunCalc from 'suncalc';
 import * as data from '../simulationData.json';
 
 let startDate: Date | null = null;
@@ -167,36 +167,16 @@ class SimulationManager {
       var d: Datacenter = this.datacenters[i];
       var workNeeded: number = d.getCurrentWorkload(this.currentTime);
       let energyAvailable: number = 0;
-      for (var j: number = 0; j < d.powersources.length; j++) {
-        var p: Powersource = d.powersources[j];
-        let variance: number = 1;
-        switch (p.powerType) {
-          case PowersourceType.WIND:
-            variance = 3;
-            break;
-          case PowersourceType.THERMAL:
-            variance = 0.2;
-            break;
-          case PowersourceType.SUN:
-            variance = 5;
-            break;
-          case PowersourceType.HYDRO:
-            variance = 0.4;
-            break;
-          default:
-            break;
-        }
-        let energyVal = Math.max(
+      d.powersources.forEach((p: Powersource) => {
+        let generatedPower = Math.max(
           0,
-          randn_bm() * variance +
-          p.powerHistory[this.currentTime] +
-          p.lastForecastDiff
+          (randn_bm() + 1) *
+          p.powerForecasted[this.currentTime]
         );
-        p.lastForecastDiff = energyVal - p.powerHistory[this.currentTime];
-        p.powerHistory[this.currentTime] = energyVal;
-        energyAvailable += energyVal;
+        p.powerProduced[this.currentTime] = generatedPower;
+        energyAvailable += generatedPower;
         p.makeNewForecast(this.currentTime);
-      }
+      });
       if (workNeeded > 0) {
         energyAvailable -= d.baseConsumption;
         if (workNeeded > d.maxWorkload) {
@@ -377,8 +357,8 @@ class Powersource {
   name: string;
   position: [number, number];
   powerType: PowersourceType;
-  powerHistory: number[];
-  lastForecastDiff: number;
+  powerProduced: number[];
+  powerForecasted: number[];
   // estPowerAtTime: powerAtTimeFunction = (time: number) => 0;
   // estPowerOverTime: number[] = [];
   constructor(
@@ -393,20 +373,20 @@ class Powersource {
     this.name = name;
     this.position = position;
     this.powerType = powerType;
-    this.powerHistory = [];
-    this.lastForecastDiff = 0;
+    this.powerProduced = [];
+    this.powerForecasted = [];
     switch (powerType) {
       case PowersourceType.WIND:
-        this.powerHistory[0] = windDefault[0];
+        this.powerForecasted[0] = windDefault[0];
         break;
       case PowersourceType.THERMAL:
-        this.powerHistory[0] = thermalDefault[0];
+        this.powerForecasted[0] = thermalDefault[0];
         break;
       case PowersourceType.SUN:
-        this.powerHistory[0] = getSunValue(0, this.position);
+        this.powerForecasted[0] = getSunValue(0, this.position);
         break;
       case PowersourceType.HYDRO:
-        this.powerHistory[0] = waterDefault[0];
+        this.powerForecasted[0] = waterDefault[0];
         break;
       default:
         break;
@@ -416,34 +396,48 @@ class Powersource {
 
   makeNewForecast(time: number): void {
     for (let i = 0; i < 24; i++) {
-      let estimatedDiff = 0;
+      let newForecast = 0;
       switch (this.powerType) {
         case PowersourceType.WIND:
-          estimatedDiff =
-            windDefault[(i + 1 + time) % 24] - windDefault[(i + time) % 24];
+          newForecast =
+            windDefault[(i + 1 + time) % 24];
           break;
         case PowersourceType.THERMAL:
-          estimatedDiff =
-            thermalDefault[(i + 1 + time) % 24] -
-            thermalDefault[(i + time) % 24];
+          newForecast =
+            thermalDefault[(i + 1 + time) % 24];
           break;
         case PowersourceType.SUN:
-          estimatedDiff =
-            getSunValue(i + 1 + time, this.position) -
-            getSunValue(i + time, this.position);
+          newForecast =
+            getSunValue(i + 1 + time, this.position);
           break;
         case PowersourceType.HYDRO:
-          estimatedDiff =
-            waterDefault[(i + 1 + time) % 24] - waterDefault[(i + time) % 24];
+          newForecast =
+            waterDefault[(i + 1 + time) % 24];
           break;
         default:
           break;
       }
-      this.powerHistory[time + i + 1] =
-        estimatedDiff +
-        this.powerHistory[time + i] +
-        ((0.5 * (24 - i)) / 24) * this.lastForecastDiff;
+      this.powerForecasted[time + i + 1] = newForecast * this.getPowerSourceFactor();
     }
+  }
+
+  getPowerSourceFactor(): number {
+    // This should probably be a property of power sources to model their size
+    switch (this.powerType) {
+      case PowersourceType.HYDRO: {
+        return 30;
+      }
+      case PowersourceType.SUN: {
+        return 15;
+      }
+      case PowersourceType.WIND: {
+        return 20;
+      }
+      case PowersourceType.THERMAL: {
+        return 10;
+      }
+    }
+    return 1;
   }
 }
 
@@ -577,10 +571,10 @@ export function getSunValue(time: number, position: [number, number]) {
   if (startDate) {
     let date = new Date(startDate.toISOString());
     date.setHours(date.getHours() + time);
-    let solarCalculator = new sc.SolarCalc(date, position[0], position[1]);
+    let solarCalculator = SunCalc.getTimes(date, position[0], position[1]);
     let sunrise = solarCalculator.sunrise;
-    if ((sunrise instanceof Date) && sunrise.getTime() > date.getTime()) {
-      // Before and after sunrise, there is no sun
+    let sunset = solarCalculator.sunset;
+    if (sunrise.getTime() > date.getTime() || sunset.getTime() < date.getTime()) {
       return 0;
     } else {
       // TODO: Add diminishing factors near night
@@ -593,16 +587,23 @@ export function getSunValue(time: number, position: [number, number]) {
   return 0;
 }
 const thermalDefault: number[] = [
-  0.8, 0.8, 0.8, 0.9, 0.85, 0.92, 1, 0.98, 1.1, 1.07, 1.05, 1.1, 1.2, 1.15, 1.3,
-  1.4, 1.34, 1.45, 1.5, 1.4, 1.2, 0.9, 0.75, 0.8,
+  0.53, 0.53, 0.53, 0.6, 0.57,
+  0.61, 0.67, 0.65, 0.73, 0.71,
+  0.7, 0.73, 0.8, 0.77, 0.87,
+  0.93, 0.89, 0.97, 1, 0.93,
+  0.8, 0.6, 0.5, 0.53
 ];
 const windDefault: number[] = [
-  1.2, 1.3, 1.6, 2.0, 2.2, 1.9, 1.6, 1.4, 1.0, 0.6, 0.5, 0.3, 0.3, 0.6, 0.7,
-  0.9, 1.0, 1.2, 1.3, 1.0, 0.7, 0.5, 0.3, 0.2,
+  0.55, 0.59, 0.73, 0.91, 1,
+  0.86, 0.73, 0.64, 0.45, 0.27,
+  0.23, 0.14, 0.14, 0.27, 0.32,
+  0.41, 0.45, 0.55, 0.59, 0.45,
+  0.32, 0.23, 0.14, 0.09
 ];
 const waterDefault: number[] = [
-  1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.0, 1.0, 1.25, 1.25,
-  1.5, 1.5, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25,
+  1, 1, 1, 1, 1, 1, 1, 1,
+  1, 0.8, 0.8, 1, 1, 1.2, 1.2, 1,
+  1, 1, 1, 1, 1, 1, 1, 1
 ];
 const deadlineTaskNames: string[] = [
   'genome calculation',
