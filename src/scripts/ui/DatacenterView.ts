@@ -101,13 +101,18 @@ class DataCenterView {
       this.currentDataCenter = dc as Datacenter;
       dc = dc as Datacenter;
     }
-    this.plotPower(dc, time);
+    this.redraw(time);
+
+    var config = { responsive: true, staticPlot: false, displayModeBar: false };
+  }
+
+  redraw(time: number) {
+    let data = this.getPlotPowerData(this.currentDataCenter, time);
     this.layout.shapes = [];
     this.shapeToTask = []; //shapeIndex -> taskId
 
-    this.plotTasks(dc, time);
-
-    var config = { responsive: true, staticPlot: false, displayModeBar: false };
+    this.generateTaskShapes(this.currentDataCenter, time);
+    Plotly.newPlot(this.plotNode, [data], this.layout);
   }
 
   addRect(
@@ -141,8 +146,7 @@ class DataCenterView {
     });
     this.shapeToTask.push(task);
   }
-  plotPower(dc: Datacenter, time: number) {
-    this.layout.shapes = [];
+  getPlotPowerData(dc: Datacenter, time: number) {
     this.shapeToTask = [];
     //plot tasks at time
     let x: number[] = [];
@@ -152,44 +156,46 @@ class DataCenterView {
       x.push(time + timeDelta);
       y.push(dc.powersources.reduce((acc, ps) => acc + ps.powerForecasted[time + timeDelta], 0));
     }
-    Plotly.newPlot(this.plotNode, [{ x: x, y: y }], { margin: { t: 0 } });
+    return { x: x, y: y };
   }
 
-  plotTasks(dc: Datacenter, time: number) {
+  generateTaskShapes(dc: Datacenter, time: number) {
     this.layout.shapes = [];
     this.shapeToTask = [];
 
     let taskLoadSoFar = 0;
     //plot tasks at time
-    for (let i = 0; i < dc.tasks.length; i++) {
-      if (dc.tasks[i] instanceof DeadlineTask) {
-        var task = dc.tasks[i] as DeadlineTask;
-        if (task.startTime >= time && task.duration + task.startTime < time) {
+    dc.tasks.forEach(task => {
+      if (task instanceof DeadlineTask) {
+        if (task.duration + task.startTime > time) {
+          let startInGraph = Math.max(time, task.startTime);
+          let lengthInGraph = task.duration - (startInGraph - task.startTime);
           this.addRect(
-            task.startTime,
+            startInGraph,
             taskLoadSoFar,
-            task.duration,
+            lengthInGraph,
             task.workLoad,
-            '#ff0000',
+            task.getDisplayColor(),
             task.active,
             task
           );
           taskLoadSoFar += task.workLoad;
-        } else {
-          this.addRect(
-            0,
-            taskLoadSoFar,
-            24,
-            dc.tasks[i].workLoad,
-            '#ff0000',
-            dc.tasks[i].active,
-            dc.tasks[i]
-          );
-          taskLoadSoFar += task.workLoad;
         }
+      } else {
+        this.addRect(
+          time,
+          taskLoadSoFar,
+          24,
+          task.workLoad,
+          task.getDisplayColor(),
+          task.active,
+          task
+        );
+        taskLoadSoFar += task.workLoad;
       }
-    }
+    });
   }
+
 }
 export { DataCenterView };
 

@@ -116,10 +116,6 @@ class UIManager {
         newSelection,
         this.simulationManager.currentTime
       );
-      this.dataCenterView.plotPower(
-        newSelection,
-        this.simulationManager.currentTime
-      );
     }
   }
 

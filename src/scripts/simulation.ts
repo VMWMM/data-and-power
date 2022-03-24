@@ -441,7 +441,8 @@ class Powersource {
   }
 }
 
-export class Task {
+export abstract class Task {
+
   id: number;
   name: string;
   workLoad: number;
@@ -478,6 +479,10 @@ export class Task {
     } else {
       return false;
     }
+  }
+
+  getDisplayColor(): string {
+    throw new Error('Subclass responsibility');
   }
 }
 
@@ -527,6 +532,10 @@ export class DeadlineTask extends Task {
   isInProgress(atTime: number): boolean {
     return this.startTime <= atTime && this.getEndTime() >= atTime;
   }
+
+  getDisplayColor() {
+    return "lightsalmon";
+  }
 }
 
 export class ContinuousTask extends Task {
@@ -556,6 +565,10 @@ export class ContinuousTask extends Task {
     } else {
       return false;
     }
+  }
+
+  getDisplayColor() {
+    return "lightyellow";
   }
 }
 
