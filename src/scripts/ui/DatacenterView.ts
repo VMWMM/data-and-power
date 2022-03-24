@@ -17,7 +17,8 @@ class DataCenterView {
     this.plotNode = document.getElementById('plotly')! as any;
     // layout.shapes.push();
     this.layout = {
-      margin: { t: 0 },
+      margin: { l: 15, t: 0, b: 30, r: 15 },
+      autosize: true,
       xaxis: { fixedrange: true },
       yaxis: { fixedrange: true },
       showlegend: false,
@@ -112,7 +113,7 @@ class DataCenterView {
     this.shapeToTask = []; //shapeIndex -> taskId
 
     this.generateTaskShapes(this.currentDataCenter, time);
-    Plotly.newPlot(this.plotNode, [data], this.layout);
+    Plotly.newPlot(this.plotNode, data, this.layout);
   }
 
   addRect(
@@ -149,14 +150,17 @@ class DataCenterView {
   getPlotPowerData(dc: Datacenter, time: number) {
     this.shapeToTask = [];
     //plot tasks at time
-    let x: number[] = [];
-    let y: number[] = [];
-    let sum: number = 0;
+    let yForecasted: number[] = [];
+    let yHistory: number[] = [];
+    let xForecasted: number[] = [];
+    let xHistory: number[] = [];
     for (let timeDelta = 0; timeDelta < 24; timeDelta++) {
-      x.push(time + timeDelta);
-      y.push(dc.powersources.reduce((acc, ps) => acc + ps.powerForecasted[time + timeDelta], 0));
+      xForecasted.push(time + timeDelta);
+      yForecasted.push(dc.powersources.reduce((acc, ps) => acc + ps.powerForecasted[time + timeDelta], 0));
+      xHistory.push(time - timeDelta);
+      yHistory.push(dc.powersources.reduce((acc, ps) => acc + ps.powerProduced[time - timeDelta], 0));
     }
-    return { x: x, y: y };
+    return [{ x: xHistory, y: yHistory }, { x: xForecasted, y: yForecasted }];
   }
 
   generateTaskShapes(dc: Datacenter, time: number) {
@@ -167,8 +171,8 @@ class DataCenterView {
     //plot tasks at time
     dc.tasks.forEach(task => {
       if (task instanceof DeadlineTask) {
-        if (task.duration + task.startTime > time) {
-          let startInGraph = Math.max(time, task.startTime);
+        if (task.duration + task.startTime > this.getMinYDrawn(time)) {
+          let startInGraph = Math.max(this.getMinYDrawn(time), task.startTime);
           let lengthInGraph = task.duration - (startInGraph - task.startTime);
           this.addRect(
             startInGraph,
@@ -183,9 +187,9 @@ class DataCenterView {
         }
       } else {
         this.addRect(
-          time,
+          this.getMinYDrawn(time),
           taskLoadSoFar,
-          24,
+          48,
           task.workLoad,
           task.getDisplayColor(),
           task.active,
@@ -196,6 +200,13 @@ class DataCenterView {
     });
   }
 
+  getMinYDrawn(time: number) {
+    return time - 24;
+  }
+
+  getMaxYDrawn(time: number) {
+    return time + 24;
+  }
 }
 export { DataCenterView };
 
