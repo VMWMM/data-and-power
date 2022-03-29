@@ -91,8 +91,6 @@ class UIManager {
     document.getElementById('score-span')!.innerHTML = roundToTwo(
       this.simulationManager.points
     ).toString();
-    this.dataCenterView.redraw(this.simulationManager.currentTime);
-    this.powerSourceView.redraw(this.simulationManager.currentTime);
     this.redraw();
   }
 
@@ -172,6 +170,7 @@ class UIManager {
                 taskToSchedule = task;
               } else alert("Can't assign to this dataCenter!");
             }
+            this.redraw();
           },
         };
       })
@@ -204,16 +203,13 @@ class UIManager {
   }
 
   redraw() {
-    // TODO: redraw UI...
     this.redrawTaskQueue();
     this.mapManager.terminator.setTime(
       this.simulationManager.getDateFromSimTime()
     );
     let simDate = this.simulationManager.getDateFromSimTime();
-    this.dataCenterView.setToDataCenter(
-      null,
-      this.simulationManager.currentTime
-    );
+    this.dataCenterView.redraw(this.simulationManager.currentTime);
+    this.powerSourceView.redraw(this.simulationManager.currentTime);
     document.getElementById('time-span')!.innerHTML = simDate.toLocaleString();
     if (this.selectedNode instanceof PowerSource) {
       this.controlPanel.info.innerHTML = `Power produced in last hour: ${roundToTwo(
