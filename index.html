@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="favicon.png" href="assets/favicon.png">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin="" />
-<link href="main.7564ca83b557f2d5bce0.css" rel="stylesheet"></head>
+<link href="main.32c5e44c0e0c27398a05.css" rel="stylesheet"></head>
 
 <body>
     <div id="game-board">
@@ -24,8 +24,12 @@
             <div id="control-bar-inner">
                 <h4 id="control-bar-headline">Select a node</h4>
                 <p id="control-bar-desc">Select a data center or a power source to get more information.</p>
-                <div id="plotly">
-                    <!--  style="width:100%;height:250px;" -->
+                <div style="display:none" id="data-center-view">
+                    <canvas id="chart" width="300" height="300">
+                        <p>Your browser doesn't support canvas</p>
+                    </canvas>
+                </div>
+                <div style="display:none" id="power-source-view">
                     <canvas id="chart" width="300" height="300">
                         <p>Your browser doesn't support canvas</p>
                     </canvas>
@@ -44,6 +48,6 @@
             Proudly presented by TEAM VMWMM. Check out the code <a href="https://github.com/VMWMM/data-and-power">here</a>.
         </div>
 
-<script type="text/javascript" src="main.7564ca83b557f2d5bce0.js"></script></body>
+<script type="text/javascript" src="main.32c5e44c0e0c27398a05.js"></script></body>
 
 </html>
