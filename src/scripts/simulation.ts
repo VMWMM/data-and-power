@@ -21,7 +21,7 @@ class SimulationManager {
     let d = new DeadlineTask(
       this.nextTaskID,
       deadlineTaskNames[
-      Math.round(Math.random() * (deadlineTaskNames.length - 1))
+        Math.round(Math.random() * (deadlineTaskNames.length - 1))
       ],
       Math.round(Math.random() * 100 + 1),
       duration,
@@ -32,12 +32,7 @@ class SimulationManager {
   initialize() {
     this.powersources = [];
     data.powersources.forEach(
-      (ps: {
-        id: number;
-        name: string;
-        position: number[];
-        type: string;
-      }) => {
+      (ps: { id: number; name: string; position: number[]; type: string }) => {
         this.powersources.push(
           new Powersource(
             ps.id,
@@ -82,26 +77,30 @@ class SimulationManager {
     });
     this.tasks = [];
     data.tasks.forEach(
-      (t: {
-        id: number;
-        name: string;
-        workload: number;
-        mean: number;
-        variance: number;
-        type: string;
-      } | {
-        id: number;
-        name: string;
-        workload: number;
-        duration: number;
-        deadline: number;
-        type: string
-      }) => {
-        if (t.type == 'CONTINUOUS' && "mean" in t) {
+      (
+        t:
+          | {
+              id: number;
+              name: string;
+              workload: number;
+              mean: number;
+              variance: number;
+              type: string;
+            }
+          | {
+              id: number;
+              name: string;
+              workload: number;
+              duration: number;
+              deadline: number;
+              type: string;
+            }
+      ) => {
+        if (t.type == 'CONTINUOUS' && 'mean' in t) {
           this.tasks.push(
             new ContinuousTask(t.id, t.name, t.workload, t.mean!, t.variance!)
           );
-        } else if (t.type == 'DEADLINE' && "duration" in t) {
+        } else if (t.type == 'DEADLINE' && 'duration' in t) {
           this.tasks.push(
             new DeadlineTask(t.id, t.name, t.workload, t.duration!, t.deadline!)
           );
@@ -144,9 +143,9 @@ class SimulationManager {
     this.datacenters.forEach((dc) => {
       console.log(
         'Datacenter: ' +
-        dc.name +
-        ', Workload: ' +
-        dc.getCurrentWorkload(this.currentTime)
+          dc.name +
+          ', Workload: ' +
+          dc.getCurrentWorkload(this.currentTime)
       );
       dc.tasks.forEach((t) => {
         console.log(' Task: ' + t.name);
@@ -170,8 +169,7 @@ class SimulationManager {
       d.powersources.forEach((p: Powersource) => {
         let generatedPower = Math.max(
           0,
-          (randn_bm() + 1) *
-          p.powerForecasted[this.currentTime]
+          (randn_bm() + 1) * p.powerForecasted[this.currentTime]
         );
         p.powerProduced[this.currentTime] = generatedPower;
         energyAvailable += generatedPower;
@@ -399,25 +397,22 @@ class Powersource {
       let newForecast = 0;
       switch (this.powerType) {
         case PowersourceType.WIND:
-          newForecast =
-            windDefault[(i + 1 + time) % 24];
+          newForecast = windDefault[(i + 1 + time) % 24];
           break;
         case PowersourceType.THERMAL:
-          newForecast =
-            thermalDefault[(i + 1 + time) % 24];
+          newForecast = thermalDefault[(i + 1 + time) % 24];
           break;
         case PowersourceType.SUN:
-          newForecast =
-            getSunValue(i + 1 + time, this.position);
+          newForecast = getSunValue(i + 1 + time, this.position);
           break;
         case PowersourceType.HYDRO:
-          newForecast =
-            waterDefault[(i + 1 + time) % 24];
+          newForecast = waterDefault[(i + 1 + time) % 24];
           break;
         default:
           break;
       }
-      this.powerForecasted[time + i + 1] = newForecast * this.getPowerSourceFactor();
+      this.powerForecasted[time + i + 1] =
+        newForecast * this.getPowerSourceFactor();
     }
   }
 
@@ -442,7 +437,6 @@ class Powersource {
 }
 
 export abstract class Task {
-
   id: number;
   name: string;
   workLoad: number;
@@ -534,7 +528,7 @@ export class DeadlineTask extends Task {
   }
 
   getDisplayColor() {
-    return "lightsalmon";
+    return 'lightsalmon';
   }
 }
 
@@ -568,7 +562,7 @@ export class ContinuousTask extends Task {
   }
 
   getDisplayColor() {
-    return "lightyellow";
+    return 'lightyellow';
   }
 }
 
@@ -587,7 +581,10 @@ export function getSunValue(time: number, position: [number, number]) {
     let solarCalculator = SunCalc.getTimes(date, position[0], position[1]);
     let sunrise = solarCalculator.sunrise;
     let sunset = solarCalculator.sunset;
-    if (sunrise.getTime() > date.getTime() || sunset.getTime() < date.getTime()) {
+    if (
+      sunrise.getTime() > date.getTime() ||
+      sunset.getTime() < date.getTime()
+    ) {
       return 0;
     } else {
       // TODO: Add diminishing factors near night
@@ -600,23 +597,16 @@ export function getSunValue(time: number, position: [number, number]) {
   return 0;
 }
 const thermalDefault: number[] = [
-  0.53, 0.53, 0.53, 0.6, 0.57,
-  0.61, 0.67, 0.65, 0.73, 0.71,
-  0.7, 0.73, 0.8, 0.77, 0.87,
-  0.93, 0.89, 0.97, 1, 0.93,
-  0.8, 0.6, 0.5, 0.53
+  0.53, 0.53, 0.53, 0.6, 0.57, 0.61, 0.67, 0.65, 0.73, 0.71, 0.7, 0.73, 0.8,
+  0.77, 0.87, 0.93, 0.89, 0.97, 1, 0.93, 0.8, 0.6, 0.5, 0.53,
 ];
 const windDefault: number[] = [
-  0.55, 0.59, 0.73, 0.91, 1,
-  0.86, 0.73, 0.64, 0.45, 0.27,
-  0.23, 0.14, 0.14, 0.27, 0.32,
-  0.41, 0.45, 0.55, 0.59, 0.45,
-  0.32, 0.23, 0.14, 0.09
+  0.55, 0.59, 0.73, 0.91, 1, 0.86, 0.73, 0.64, 0.45, 0.27, 0.23, 0.14, 0.14,
+  0.27, 0.32, 0.41, 0.45, 0.55, 0.59, 0.45, 0.32, 0.23, 0.14, 0.09,
 ];
 const waterDefault: number[] = [
-  1, 1, 1, 1, 1, 1, 1, 1,
-  1, 0.8, 0.8, 1, 1, 1.2, 1.2, 1,
-  1, 1, 1, 1, 1, 1, 1, 1
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 0.8, 0.8, 1, 1, 1.2, 1.2, 1, 1, 1, 1, 1, 1, 1, 1,
+  1,
 ];
 const deadlineTaskNames: string[] = [
   'genome calculation',

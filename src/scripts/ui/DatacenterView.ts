@@ -1,53 +1,60 @@
 import * as Plotly from 'plotly.js';
-import { Datacenter, DeadlineTask, Task } from '../simulation';
+import { Datacenter, DeadlineTask, Powersource, Task } from '../simulation';
 import { UIManager } from './ui';
 
-class DataCenterView {
-  plotNode: any;
-  layout: any;
-  shapeToTask: Task[] = [];
-
-  currentStartHour = 0;
-
-  currentDataCenter: Datacenter;
+class GraphView {
+  plotNode: HTMLElement;
   ui: UIManager;
-  constructor(initDC: Datacenter, ui: any) {
+  layout: any;
+  config: any;
+  constructor(ui: UIManager) {
     this.ui = ui;
-    this.currentDataCenter = initDC;
-    this.plotNode = document.getElementById('plotly')! as any;
-    // layout.shapes.push();
+    this.plotNode = document.getElementById(this.nodeID)!;
+    this.config = {
+      responsive: true,
+      staticPlot: false,
+      displayModeBar: false,
+    };
     this.layout = {
       margin: { l: 15, t: 0, b: 30, r: 15 },
-      autosize: true,
+      autosize: false,
       xaxis: { fixedrange: true },
       yaxis: { fixedrange: true },
+      height: 300,
+      width: 300,
       showlegend: false,
       // hovermode: 'closest'
-      //shapes??
       shapes: [] as any,
     };
+  }
+
+  get nodeID(): string {
+    throw new Error('Subclass responsibility');
+  }
+
+  getMinYDrawn(time: number) {
+    return time - 24;
+  }
+
+  getMaxYDrawn(time: number) {
+    return time + 24;
+  }
+
+  redraw(time: number) {}
+}
+
+export class DataCenterView extends GraphView {
+  shapeToTask: Task[] = [];
+  currentDataCenter: Datacenter;
+
+  constructor(initDC: Datacenter, ui: any) {
+    super(ui);
+    this.currentDataCenter = initDC;
+
     // //move up maybe?
     // this.plotNode.on('plotly_click', ((data: any) => this.onClickAtGraph(data)));
 
-    var config = { responsive: true, staticPlot: false, displayModeBar: false };
-    var plot = Plotly.newPlot(
-      this.plotNode,
-      [
-        {
-          x: [1, 2, 3, 4, 5],
-          y: [1, 2, 4, 8, 16],
-        },
-      ],
-      this.layout,
-      config
-    );
-    // this.plotNode.onclick = ((e: any) => this.onClick(e));
-    // var plot = Plotly.newPlot(this.plotNode, [{
-    //   x: [1, 2, 3, 4, 5],
-    //   y: [1, 2, 4, 8, 16]
-    // }], this.layout, config);
-
-    //mouse click down in general
+    // let config = { responsive: true, staticPlot: false, displayModeBar: false };
 
     this.setToDatacenter(initDC, 0);
   }
@@ -67,13 +74,12 @@ class DataCenterView {
         this.hasRequestedTimeTaskPlacement = false;
         console.log(
           'clicked at time ',
-          Math.floor(e.clientX - e.target.getBoundingClientRect().left) +
-          this.currentStartHour
+          Math.floor(e.clientX - e.target.getBoundingClientRect().left)
         );
       } else {
-        var rect = e.target.getBoundingClientRect();
-        var x = e.clientX - rect.left; //x position within the element.
-        var y = e.clientY - rect.top; //y position within the element.
+        let rect = e.target.getBoundingClientRect();
+        let x = e.clientX - rect.left; //x position within the element.
+        let y = e.clientY - rect.top; //y position within the element.
         console.log('Left? : ' + x + ' ; Top? : ' + y + '.');
         //find in which task the click happened
         for (let i = 0; i < this.layout.shapes.length; i++) {
@@ -104,16 +110,16 @@ class DataCenterView {
     }
     this.redraw(time);
 
-    var config = { responsive: true, staticPlot: false, displayModeBar: false };
+    //let config = { responsive: true, staticPlot: false, displayModeBar: false };
   }
 
   redraw(time: number) {
-    let data = this.getPlotPowerData(this.currentDataCenter, time);
+    let data = this.getPlotPowerData(time);
     this.layout.shapes = [];
     this.shapeToTask = []; //shapeIndex -> taskId
 
-    this.generateTaskShapes(this.currentDataCenter, time);
-    Plotly.newPlot(this.plotNode, data, this.layout);
+    this.generateTaskShapes(time);
+    Plotly.newPlot(this.plotNode, data, this.layout, this.config);
   }
 
   addRect(
@@ -147,7 +153,9 @@ class DataCenterView {
     });
     this.shapeToTask.push(task);
   }
-  getPlotPowerData(dc: Datacenter, time: number) {
+
+  getPlotPowerData(time: number) {
+    let dc = this.currentDataCenter;
     this.shapeToTask = [];
     //plot tasks at time
     let yForecasted: number[] = [];
@@ -156,20 +164,34 @@ class DataCenterView {
     let xHistory: number[] = [];
     for (let timeDelta = 0; timeDelta < 24; timeDelta++) {
       xForecasted.push(time + timeDelta);
-      yForecasted.push(dc.powersources.reduce((acc, ps) => acc + ps.powerForecasted[time + timeDelta], 0));
+      yForecasted.push(
+        dc.powersources.reduce(
+          (acc, ps) => acc + ps.powerForecasted[time + timeDelta],
+          0
+        )
+      );
       xHistory.push(time - timeDelta);
-      yHistory.push(dc.powersources.reduce((acc, ps) => acc + ps.powerProduced[time - timeDelta], 0));
+      yHistory.push(
+        dc.powersources.reduce(
+          (acc, ps) => acc + ps.powerProduced[time - timeDelta],
+          0
+        )
+      );
     }
-    return [{ x: xHistory, y: yHistory }, { x: xForecasted, y: yForecasted }];
+    return [
+      { x: xHistory, y: yHistory },
+      { x: xForecasted, y: yForecasted },
+    ];
   }
 
-  generateTaskShapes(dc: Datacenter, time: number) {
+  generateTaskShapes(time: number) {
+    let dc = this.currentDataCenter;
     this.layout.shapes = [];
     this.shapeToTask = [];
 
     let taskLoadSoFar = 0;
     //plot tasks at time
-    dc.tasks.forEach(task => {
+    dc.tasks.forEach((task) => {
       if (task instanceof DeadlineTask) {
         if (task.duration + task.startTime > this.getMinYDrawn(time)) {
           let startInGraph = Math.max(this.getMinYDrawn(time), task.startTime);
@@ -200,24 +222,45 @@ class DataCenterView {
     });
   }
 
-  getMinYDrawn(time: number) {
-    return time - 24;
-  }
-
-  getMaxYDrawn(time: number) {
-    return time + 24;
+  get nodeID(): string {
+    return 'data-center-view';
   }
 }
-export { DataCenterView };
 
-// TESTER = document.getElementById('tester');
+export class PowersourceView extends GraphView {
+  powersource!: Powersource;
+  setToPowersource(ps: Powersource, time: number) {
+    this.powersource = ps;
+    this.redraw(time);
+  }
 
-// Plotly.newPlot(TESTER, [{
+  getPowerData(time: number) {
+    //plot tasks at time
+    let yForecasted: number[] = [];
+    let yHistory: number[] = [];
+    let xForecasted: number[] = [];
+    let xHistory: number[] = [];
+    for (let timeDelta = 0; timeDelta < 24; timeDelta++) {
+      xForecasted.push(time + timeDelta);
+      yForecasted.push(this.powersource.powerForecasted[time + timeDelta]);
+      xHistory.push(time - timeDelta);
+      yHistory.push(this.powersource.powerProduced[time - timeDelta]);
+    }
+    return [
+      { x: xHistory, y: yHistory },
+      { x: xForecasted, y: yForecasted },
+    ];
+  }
 
-//   x: [1, 2, 3, 4, 5],
+  redraw(time: number): void {
+    if (!this.powersource) {
+      return;
+    }
+    let data = this.getPowerData(time);
+    Plotly.newPlot(this.plotNode, data, this.layout, this.config);
+  }
 
-//   y: [1, 2, 4, 8, 16]
-// }], {
-
-//   margin: { t: 0 }
-// });
+  get nodeID(): string {
+    return 'power-source-view';
+  }
+}

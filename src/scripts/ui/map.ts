@@ -126,7 +126,7 @@ abstract class MapIcon {
     this.createEventListeners();
   }
 
-  addNodeSpecificLines() { }
+  addNodeSpecificLines() {}
 
   createEventListeners() {
     throw new Error('Subclass responsibility');

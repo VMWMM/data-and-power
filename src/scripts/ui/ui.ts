@@ -6,10 +6,10 @@ import {
   Powersource,
   PowersourceType,
   SimulationManager,
-  Task
+  Task,
 } from '../simulation';
 import { roundToTwo } from '../utils';
-import { DataCenterView } from './DatacenterView';
+import { DataCenterView, PowersourceView } from './DatacenterView';
 import { DatacenterIcon, MapManager } from './map';
 
 class UIManager {
@@ -20,6 +20,7 @@ class UIManager {
   nextTurnButton: HTMLButtonElement;
 
   dataCenterView: DataCenterView;
+  powerSourceView: PowersourceView;
 
   taskToShift: Task | null;
   constructor(simulationManager: SimulationManager) {
@@ -36,6 +37,7 @@ class UIManager {
       this.simulationManager.datacenters[0],
       this
     );
+    this.powerSourceView = new PowersourceView(this);
     this.mapManager.onDatacenterPressed = (datacenter: Datacenter) =>
       this.onDatacenterPressed(datacenter);
     this.mapManager.onPowersourcePressed = (powersource: Powersource) =>
@@ -69,7 +71,7 @@ class UIManager {
     this.controlPanel.headline.innerHTML = datacenter.name;
     this.controlPanel.desc.innerHTML = `A data center.`;
     this.updateSelection(datacenter);
-    this.controlPanel.info.innerHTML = "";
+    this.controlPanel.info.innerHTML = '';
   }
   onPowersourcePressed(powersource: Powersource) {
     this.controlPanel.headline.innerHTML = powersource.name;
@@ -77,7 +79,11 @@ class UIManager {
       powersource
     )} power.`;
     this.updateSelection(powersource);
-    this.controlPanel.info.innerHTML = `Power produced in last hour: ${roundToTwo(powersource.powerProduced[this.simulationManager.currentTime - 1])}</br>Power forecasted for last hour: ${roundToTwo(powersource.powerForecasted[this.simulationManager.currentTime - 1])}`;
+    this.controlPanel.info.innerHTML = `Power produced in last hour: ${roundToTwo(
+      powersource.powerProduced[this.simulationManager.currentTime - 1]
+    )}</br>Power forecasted for last hour: ${roundToTwo(
+      powersource.powerForecasted[this.simulationManager.currentTime - 1]
+    )}`;
   }
 
   onNextTurnButtonPressed() {
@@ -85,10 +91,8 @@ class UIManager {
     document.getElementById('score-span')!.innerHTML = roundToTwo(
       this.simulationManager.points
     ).toString();
-    this.dataCenterView.setToDatacenter(
-      null,
-      this.simulationManager.currentTime
-    );
+    this.dataCenterView.redraw(this.simulationManager.currentTime);
+    this.powerSourceView.redraw(this.simulationManager.currentTime);
     this.redraw();
   }
 
@@ -112,7 +116,16 @@ class UIManager {
         );
         this.taskToShift = null;
       }
+      document.getElementById('data-center-view')!.style.display = 'inherit';
+      document.getElementById('power-source-view')!.style.display = 'none';
       this.dataCenterView.setToDatacenter(
+        newSelection,
+        this.simulationManager.currentTime
+      );
+    } else if (newSelection instanceof Powersource) {
+      document.getElementById('data-center-view')!.style.display = 'none';
+      document.getElementById('power-source-view')!.style.display = 'inherit';
+      this.powerSourceView.setToPowersource(
         newSelection,
         this.simulationManager.currentTime
       );
@@ -203,7 +216,13 @@ class UIManager {
     );
     document.getElementById('time-span')!.innerHTML = simDate.toLocaleString();
     if (this.selectedNode instanceof Powersource) {
-      this.controlPanel.info.innerHTML = `Power produced in last hour: ${roundToTwo(this.selectedNode.powerProduced[this.simulationManager.currentTime - 1])}</br>Power forecasted for last hour: ${roundToTwo(this.selectedNode.powerForecasted[this.simulationManager.currentTime - 1])}`;
+      this.controlPanel.info.innerHTML = `Power produced in last hour: ${roundToTwo(
+        this.selectedNode.powerProduced[this.simulationManager.currentTime - 1]
+      )}</br>Power forecasted for last hour: ${roundToTwo(
+        this.selectedNode.powerForecasted[
+          this.simulationManager.currentTime - 1
+        ]
+      )}`;
     }
   }
 }
