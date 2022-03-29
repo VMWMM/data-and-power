@@ -1,5 +1,5 @@
 import * as Plotly from 'plotly.js';
-import { Datacenter, DeadlineTask, Powersource, Task } from '../simulation';
+import { DataCenter, DeadlineTask, PowerSource, Task } from '../simulation';
 import { UIManager } from './ui';
 
 class GraphView {
@@ -40,14 +40,14 @@ class GraphView {
     return time + 24;
   }
 
-  redraw(time: number) {}
+  redraw(time: number) { }
 }
 
 export class DataCenterView extends GraphView {
   shapeToTask: Task[] = [];
-  currentDataCenter: Datacenter;
+  currentDataCenter: DataCenter;
 
-  constructor(initDC: Datacenter, ui: any) {
+  constructor(initDC: DataCenter, ui: any) {
     super(ui);
     this.currentDataCenter = initDC;
 
@@ -56,7 +56,7 @@ export class DataCenterView extends GraphView {
 
     // let config = { responsive: true, staticPlot: false, displayModeBar: false };
 
-    this.setToDatacenter(initDC, 0);
+    this.setToDataCenter(initDC, 0);
   }
 
   hasRequestedTimeTaskPlacement = true;
@@ -101,12 +101,12 @@ export class DataCenterView extends GraphView {
     this.ui.shiftTask(t);
   }
 
-  setToDatacenter(dc: Datacenter | null, time: number) {
+  setToDataCenter(dc: DataCenter | null, time: number) {
     if (dc == null) {
       dc = this.currentDataCenter;
     } else {
-      this.currentDataCenter = dc as Datacenter;
-      dc = dc as Datacenter;
+      this.currentDataCenter = dc as DataCenter;
+      dc = dc as DataCenter;
     }
     this.redraw(time);
 
@@ -165,14 +165,14 @@ export class DataCenterView extends GraphView {
     for (let timeDelta = 0; timeDelta < 24; timeDelta++) {
       xForecasted.push(time + timeDelta);
       yForecasted.push(
-        dc.powersources.reduce(
+        dc.powerSources.reduce(
           (acc, ps) => acc + ps.powerForecasted[time + timeDelta],
           0
         )
       );
       xHistory.push(time - timeDelta);
       yHistory.push(
-        dc.powersources.reduce(
+        dc.powerSources.reduce(
           (acc, ps) => acc + ps.powerProduced[time - timeDelta],
           0
         )
@@ -227,10 +227,10 @@ export class DataCenterView extends GraphView {
   }
 }
 
-export class PowersourceView extends GraphView {
-  powersource!: Powersource;
-  setToPowersource(ps: Powersource, time: number) {
-    this.powersource = ps;
+export class PowerSourceView extends GraphView {
+  powerSource!: PowerSource;
+  setToPowerSource(ps: PowerSource, time: number) {
+    this.powerSource = ps;
     this.redraw(time);
   }
 
@@ -242,9 +242,9 @@ export class PowersourceView extends GraphView {
     let xHistory: number[] = [];
     for (let timeDelta = 0; timeDelta < 24; timeDelta++) {
       xForecasted.push(time + timeDelta);
-      yForecasted.push(this.powersource.powerForecasted[time + timeDelta]);
+      yForecasted.push(this.powerSource.powerForecasted[time + timeDelta]);
       xHistory.push(time - timeDelta);
-      yHistory.push(this.powersource.powerProduced[time - timeDelta]);
+      yHistory.push(this.powerSource.powerProduced[time - timeDelta]);
     }
     return [
       { x: xHistory, y: yHistory },
@@ -253,7 +253,7 @@ export class PowersourceView extends GraphView {
   }
 
   redraw(time: number): void {
-    if (!this.powersource) {
+    if (!this.powerSource) {
       return;
     }
     let data = this.getPowerData(time);

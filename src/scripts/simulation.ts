@@ -3,8 +3,8 @@ import * as data from '../simulationData.json';
 
 let startDate: Date | null = null;
 class SimulationManager {
-  datacenters!: Datacenter[];
-  powersources!: Powersource[];
+  dataCenters!: DataCenter[];
+  powerSources!: PowerSource[];
   tasks!: Task[];
   currentTime!: number;
   coalFactor!: number;
@@ -21,7 +21,7 @@ class SimulationManager {
     let d = new DeadlineTask(
       this.nextTaskID,
       deadlineTaskNames[
-        Math.round(Math.random() * (deadlineTaskNames.length - 1))
+      Math.round(Math.random() * (deadlineTaskNames.length - 1))
       ],
       Math.round(Math.random() * 100 + 1),
       duration,
@@ -30,21 +30,21 @@ class SimulationManager {
     return d;
   }
   initialize() {
-    this.powersources = [];
-    data.powersources.forEach(
+    this.powerSources = [];
+    data.powerSources.forEach(
       (ps: { id: number; name: string; position: number[]; type: string }) => {
-        this.powersources.push(
-          new Powersource(
+        this.powerSources.push(
+          new PowerSource(
             ps.id,
             ps.name,
             [ps.position[0], ps.position[1]],
-            strToPowersourceType(ps.type)
+            strToPowerSourceType(ps.type)
           )
         );
       }
     );
-    this.datacenters = [];
-    data.datacenters.forEach(
+    this.dataCenters = [];
+    data.dataCenters.forEach(
       (dc: {
         id: number;
         name: string;
@@ -54,8 +54,8 @@ class SimulationManager {
         workLoadToPowerFac: number;
         distToDataCenters: number[];
       }) => {
-        this.datacenters.push(
-          new Datacenter(
+        this.dataCenters.push(
+          new DataCenter(
             dc.id,
             dc.name,
             [dc.position[0], dc.position[1]],
@@ -68,33 +68,33 @@ class SimulationManager {
         );
       }
     );
-    data.datacenters.forEach((dc: { id: number; powersources: number[] }) => {
-      let sources: Powersource[] = [];
-      dc.powersources.forEach((powerSourceId) => {
-        sources.push(this.powersources[powerSourceId]);
+    data.dataCenters.forEach((dc: { id: number; powerSources: number[] }) => {
+      let sources: PowerSource[] = [];
+      dc.powerSources.forEach((powerSourceId) => {
+        sources.push(this.powerSources[powerSourceId]);
       });
-      this.datacenters[dc.id].powersources = sources;
+      this.dataCenters[dc.id].powerSources = sources;
     });
     this.tasks = [];
     data.tasks.forEach(
       (
         t:
           | {
-              id: number;
-              name: string;
-              workload: number;
-              mean: number;
-              variance: number;
-              type: string;
-            }
+            id: number;
+            name: string;
+            workload: number;
+            mean: number;
+            variance: number;
+            type: string;
+          }
           | {
-              id: number;
-              name: string;
-              workload: number;
-              duration: number;
-              deadline: number;
-              type: string;
-            }
+            id: number;
+            name: string;
+            workload: number;
+            duration: number;
+            deadline: number;
+            type: string;
+          }
       ) => {
         if (t.type == 'CONTINUOUS' && 'mean' in t) {
           this.tasks.push(
@@ -107,9 +107,9 @@ class SimulationManager {
         }
       }
     );
-    console.log(this.datacenters);
-    //this.tasks[0].assignTask(this.datacenters[0]);
-    //this.tasks[1].assignTask(this.datacenters[0]);
+    console.log(this.dataCenters);
+    //this.tasks[0].assignTask(this.dataCenters[0]);
+    //this.tasks[1].assignTask(this.dataCenters[0]);
     this.currentTime = 0;
     this.simulationStartDate = new Date(Date.now());
     this.simulationStartDate.setHours(12);
@@ -140,12 +140,12 @@ class SimulationManager {
   //helper function as we dont have dashboards yet
   printState() {
     console.log('Time: ' + this.currentTime);
-    this.datacenters.forEach((dc) => {
+    this.dataCenters.forEach((dc) => {
       console.log(
-        'Datacenter: ' +
-          dc.name +
-          ', Workload: ' +
-          dc.getCurrentWorkload(this.currentTime)
+        'DataCenter: ' +
+        dc.name +
+        ', Workload: ' +
+        dc.getCurrentWorkload(this.currentTime)
       );
       dc.tasks.forEach((t) => {
         console.log(' Task: ' + t.name);
@@ -161,12 +161,12 @@ class SimulationManager {
 
   calculateCoalUsage(): number[] {
     var coalUsage: number[] = [];
-    for (var i: number = 0; i < this.datacenters.length; i++) {
+    for (var i: number = 0; i < this.dataCenters.length; i++) {
       coalUsage[i] = 0;
-      var d: Datacenter = this.datacenters[i];
+      var d: DataCenter = this.dataCenters[i];
       var workNeeded: number = d.getCurrentWorkload(this.currentTime);
       let energyAvailable: number = 0;
-      d.powersources.forEach((p: Powersource) => {
+      d.powerSources.forEach((p: PowerSource) => {
         let generatedPower = Math.max(
           0,
           (randn_bm() + 1) * p.powerForecasted[this.currentTime]
@@ -191,8 +191,8 @@ class SimulationManager {
 
   //sets a semi-random workload attribute for all Continuous Tasks
   calculateWorkLoad() {
-    for (var i: number = 0; i < this.datacenters.length; i++) {
-      var d: Datacenter = this.datacenters[i];
+    for (var i: number = 0; i < this.dataCenters.length; i++) {
+      var d: DataCenter = this.dataCenters[i];
       for (var j: number = 0; j < d.tasks.length; j++) {
         var t = d.tasks[j];
         if (t instanceof ContinuousTask) {
@@ -204,8 +204,8 @@ class SimulationManager {
 
   calculatePoints(coalUsed: number[]): number {
     var addPoints: number = 0;
-    for (var i: number = 0; i < this.datacenters.length; i++) {
-      var d: Datacenter = this.datacenters[i];
+    for (var i: number = 0; i < this.dataCenters.length; i++) {
+      var d: DataCenter = this.dataCenters[i];
       addPoints -= coalUsed[i] * this.coalFactor;
       for (var j: number = 0; j < d.tasks.length; j++) {
         var t = d.tasks[j];
@@ -254,7 +254,7 @@ class SimulationManager {
     var points = t.workLoad;
     this.tasks.splice(this.tasks.indexOf(t), 1);
     if (t.scheduled)
-      t.datacenter.tasks.splice(t.datacenter.tasks.indexOf(t), 1);
+      t.dataCenter.tasks.splice(t.dataCenter.tasks.indexOf(t), 1);
     if (finished) {
       return points;
     } else {
@@ -269,16 +269,16 @@ class SimulationManager {
   }
 }
 
-class Datacenter {
+class DataCenter {
   id: number;
   name: string;
   position: [number, number];
   baseConsumption: number;
   maxWorkload: number;
   workloadToPowerFac: number; //efficiency
-  distToDatacenters: number[];
+  distToDataCenters: number[];
 
-  powersources: Powersource[];
+  powerSources: PowerSource[];
   tasks: Task[];
 
   //additional
@@ -290,8 +290,8 @@ class Datacenter {
     baseConsumption: number,
     maxWorkload: number,
     workloadToPowerFac: number,
-    distToDatacenters: number[],
-    powersources: Powersource[]
+    distToDataCenters: number[],
+    powerSources: PowerSource[]
   ) {
     this.id = id;
     this.name = name;
@@ -299,8 +299,8 @@ class Datacenter {
     this.maxWorkload = maxWorkload;
     this.baseConsumption = baseConsumption;
     this.workloadToPowerFac = workloadToPowerFac;
-    this.distToDatacenters = distToDatacenters;
-    this.powersources = powersources;
+    this.distToDataCenters = distToDataCenters;
+    this.powerSources = powerSources;
     this.tasks = [];
   }
   getCurrentPowerReq(atTimeStep: number): number {
@@ -311,7 +311,7 @@ class Datacenter {
     this.tasks = [];
   }
 
-  //sum workload of all active tasks for datacenter
+  //sum workload of all active tasks for dataCenter
   getCurrentWorkload(currentTime: number): number {
     let sum = 0;
 
@@ -332,7 +332,7 @@ class Datacenter {
   }
 }
 
-enum PowersourceType {
+enum PowerSourceType {
   SUN,
   WIND,
   HYDRO,
@@ -340,21 +340,21 @@ enum PowersourceType {
   OTHER,
 }
 
-function strToPowersourceType(name: string) {
-  if (name == 'SUN') return PowersourceType.SUN;
-  if (name == 'WIND') return PowersourceType.WIND;
-  if (name == 'HYDRO') return PowersourceType.HYDRO;
-  if (name == 'THERMAL') return PowersourceType.THERMAL;
-  return PowersourceType.OTHER;
+function strToPowerSourceType(name: string) {
+  if (name == 'SUN') return PowerSourceType.SUN;
+  if (name == 'WIND') return PowerSourceType.WIND;
+  if (name == 'HYDRO') return PowerSourceType.HYDRO;
+  if (name == 'THERMAL') return PowerSourceType.THERMAL;
+  return PowerSourceType.OTHER;
 }
 
 type powerAtTimeFunction = (time: number) => number;
 
-class Powersource {
+class PowerSource {
   id: number;
   name: string;
   position: [number, number];
-  powerType: PowersourceType;
+  powerType: PowerSourceType;
   powerProduced: number[];
   powerForecasted: number[];
   // estPowerAtTime: powerAtTimeFunction = (time: number) => 0;
@@ -363,7 +363,7 @@ class Powersource {
     id: number,
     name: string,
     position: [number, number],
-    powerType: PowersourceType
+    powerType: PowerSourceType
 
     //estPowerOverTime: number[],
   ) {
@@ -374,16 +374,16 @@ class Powersource {
     this.powerProduced = [];
     this.powerForecasted = [];
     switch (powerType) {
-      case PowersourceType.WIND:
+      case PowerSourceType.WIND:
         this.powerForecasted[0] = windDefault[0];
         break;
-      case PowersourceType.THERMAL:
+      case PowerSourceType.THERMAL:
         this.powerForecasted[0] = thermalDefault[0];
         break;
-      case PowersourceType.SUN:
+      case PowerSourceType.SUN:
         this.powerForecasted[0] = getSunValue(0, this.position);
         break;
-      case PowersourceType.HYDRO:
+      case PowerSourceType.HYDRO:
         this.powerForecasted[0] = waterDefault[0];
         break;
       default:
@@ -396,16 +396,16 @@ class Powersource {
     for (let i = 0; i < 24; i++) {
       let newForecast = 0;
       switch (this.powerType) {
-        case PowersourceType.WIND:
+        case PowerSourceType.WIND:
           newForecast = windDefault[(i + 1 + time) % 24];
           break;
-        case PowersourceType.THERMAL:
+        case PowerSourceType.THERMAL:
           newForecast = thermalDefault[(i + 1 + time) % 24];
           break;
-        case PowersourceType.SUN:
+        case PowerSourceType.SUN:
           newForecast = getSunValue(i + 1 + time, this.position);
           break;
-        case PowersourceType.HYDRO:
+        case PowerSourceType.HYDRO:
           newForecast = waterDefault[(i + 1 + time) % 24];
           break;
         default:
@@ -419,16 +419,16 @@ class Powersource {
   getPowerSourceFactor(): number {
     // This should probably be a property of power sources to model their size
     switch (this.powerType) {
-      case PowersourceType.HYDRO: {
+      case PowerSourceType.HYDRO: {
         return 30;
       }
-      case PowersourceType.SUN: {
+      case PowerSourceType.SUN: {
         return 15;
       }
-      case PowersourceType.WIND: {
+      case PowerSourceType.WIND: {
         return 20;
       }
-      case PowersourceType.THERMAL: {
+      case PowerSourceType.THERMAL: {
         return 10;
       }
     }
@@ -442,7 +442,7 @@ export abstract class Task {
   workLoad: number;
   active: boolean;
   scheduled: boolean;
-  datacenter!: Datacenter;
+  dataCenter!: DataCenter;
   constructor(id: number, name: string, workLoad: number, active: boolean) {
     this.id = id;
     this.name = name;
@@ -451,16 +451,16 @@ export abstract class Task {
     this.scheduled = false;
   }
 
-  assignTask(dc: Datacenter, currentTime: number): boolean {
+  assignTask(dc: DataCenter, currentTime: number): boolean {
     let dist = 0;
     if ((this.scheduled, this.active)) {
-      console.log(this.datacenter);
-      dist = this.datacenter.distToDatacenters[dc.id];
+      console.log(this.dataCenter);
+      dist = this.dataCenter.distToDataCenters[dc.id];
     }
     let currentLoad = dc.getCurrentPowerReq(currentTime);
     if (currentLoad + this.workLoad * dc.workloadToPowerFac <= dc.maxWorkload) {
       dc.tasks.push(this);
-      this.datacenter = dc;
+      this.dataCenter = dc;
       this.scheduled = true;
       let delay = 2 + 0.1 * dist * dist;
       if (this instanceof ContinuousTask) {
@@ -496,13 +496,13 @@ export class DeadlineTask extends Task {
     this.deadline = deadline;
   }
 
-  assignDeadlineTask(dc: Datacenter, atTime: number): boolean {
+  assignDeadlineTask(dc: DataCenter, atTime: number): boolean {
     /*let currentLoad = dc.getCurrentWorkload(currentTime);
     if(currentLoad + this.workLoad * dc.workloadToPowerFac <= dc.maxWorkload) {
       dc.tasks.push(this);
       console.log(dc.tasks)
       this.active = true;
-      this.datacenter = dc;
+      this.dataCenter = dc;
       this.startTime = atTime;
       this.scheduled = true;
       return true;
@@ -549,11 +549,11 @@ export class ContinuousTask extends Task {
     this.delay = 0;
   }
 
-  assignContinuousTask(dc: Datacenter, currentTime: number): boolean {
+  assignContinuousTask(dc: DataCenter, currentTime: number): boolean {
     let currentLoad = dc.getCurrentWorkload(currentTime);
     if (currentLoad + this.workLoad * dc.workloadToPowerFac <= dc.maxWorkload) {
       dc.tasks.push(this);
-      this.datacenter = dc;
+      this.dataCenter = dc;
       this.scheduled = true;
       return true;
     } else {
@@ -614,4 +614,4 @@ const deadlineTaskNames: string[] = [
   'Stockfish',
   'AI Training',
 ];
-export { SimulationManager, Datacenter, Powersource, PowersourceType };
+export { SimulationManager, DataCenter, PowerSource, PowerSourceType };

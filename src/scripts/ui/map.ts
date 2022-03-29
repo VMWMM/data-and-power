@@ -1,17 +1,17 @@
 import terminator from '@joergdietrich/leaflet.terminator';
 import * as Leaf from 'leaflet';
 import { antPath } from 'leaflet-ant-path';
-import { Datacenter, Powersource, PowersourceType } from '../simulation';
+import { DataCenter, PowerSource, PowerSourceType } from '../simulation';
 import { ajax } from '../utils';
 
 export class MapManager {
   map: Leaf.Map;
-  datacenters!: Datacenter[];
-  powersources!: Powersource[];
-  datacenterIcons!: DatacenterIcon[];
-  powersourceIcons!: PowersourceIcon[];
-  onDatacenterPressed: Function | undefined;
-  onPowersourcePressed: Function | undefined;
+  dataCenters!: DataCenter[];
+  powerSources!: PowerSource[];
+  dataCenterIcons!: DataCenterIcon[];
+  powerSourceIcons!: PowerSourceIcon[];
+  onDataCenterPressed: Function | undefined;
+  onPowerSourcePressed: Function | undefined;
   terminator: any;
   constructor() {
     this.map = new Leaf.Map('map', {
@@ -27,35 +27,35 @@ export class MapManager {
     this.initTerminator();
   }
 
-  setComponents(datacenters: Datacenter[], powersources: Powersource[]) {
-    this.datacenters = datacenters;
-    this.powersources = powersources;
+  setComponents(dataCenters: DataCenter[], powerSources: PowerSource[]) {
+    this.dataCenters = dataCenters;
+    this.powerSources = powerSources;
   }
 
   initIcons() {
-    this.datacenterIcons = this.datacenters.map(
-      (dc) => new DatacenterIcon(dc, this)
+    this.dataCenterIcons = this.dataCenters.map(
+      (dc) => new DataCenterIcon(dc, this)
     );
-    this.powersourceIcons = this.powersources.map(
-      (es) => new PowersourceIcon(es, this)
+    this.powerSourceIcons = this.powerSources.map(
+      (es) => new PowerSourceIcon(es, this)
     );
-    this.datacenterIcons.forEach((dci) => dci.connect());
+    this.dataCenterIcons.forEach((dci) => dci.connect());
   }
 
   initTerminator() {
     this.terminator = terminator({ resolution: 100 }).addTo(this.map);
   }
 
-  getIconForDatacenter(datacenter: Datacenter) {
-    return this.datacenterIcons.find((dci) => dci.modelObject == datacenter);
+  getIconForDataCenter(dataCenter: DataCenter) {
+    return this.dataCenterIcons.find((dci) => dci.modelObject == dataCenter);
   }
 
-  getIconForPowerSource(powersource: Powersource) {
-    return this.powersourceIcons.find((psi) => psi.modelObject == powersource);
+  getIconForPowerSource(powerSource: PowerSource) {
+    return this.powerSourceIcons.find((psi) => psi.modelObject == powerSource);
   }
 
-  getIconForNode(node: Powersource | Datacenter) {
-    return [...this.powersourceIcons, ...this.datacenterIcons].find(
+  getIconForNode(node: PowerSource | DataCenter) {
+    return [...this.powerSourceIcons, ...this.dataCenterIcons].find(
       (n) => n.modelObject == node
     );
   }
@@ -64,7 +64,7 @@ export class MapManager {
 abstract class MapIcon {
   marker: Leaf.Marker | undefined;
   overlay: Leaf.SVGOverlay | undefined;
-  modelObject!: Datacenter | Powersource;
+  modelObject!: DataCenter | PowerSource;
   isSelected: boolean;
 
   mapManager: MapManager;
@@ -126,7 +126,7 @@ abstract class MapIcon {
     this.createEventListeners();
   }
 
-  addNodeSpecificLines() {}
+  addNodeSpecificLines() { }
 
   createEventListeners() {
     throw new Error('Subclass responsibility');
@@ -148,13 +148,13 @@ abstract class MapIcon {
   }
 }
 
-export class DatacenterIcon extends MapIcon {
+export class DataCenterIcon extends MapIcon {
   lines: Leaf.Polyline[] | undefined;
   powerLines!: Leaf.Polyline[];
-  declare modelObject: Datacenter;
-  constructor(datacenter: Datacenter, mapManager: MapManager) {
+  declare modelObject: DataCenter;
+  constructor(dataCenter: DataCenter, mapManager: MapManager) {
     super(mapManager);
-    this.modelObject = datacenter;
+    this.modelObject = dataCenter;
     this.createOverlay();
   }
 
@@ -162,8 +162,8 @@ export class DatacenterIcon extends MapIcon {
     if (this.overlay) {
       this.overlay.on('click', (event) => {
         Leaf.DomEvent.stopPropagation(event);
-        if (this.mapManager.onDatacenterPressed)
-          this.mapManager.onDatacenterPressed(this.modelObject);
+        if (this.mapManager.onDataCenterPressed)
+          this.mapManager.onDataCenterPressed(this.modelObject);
       });
       this.overlay.on('mouseover', () => {
         this.drawConnectionsWithPowerSources();
@@ -177,11 +177,11 @@ export class DatacenterIcon extends MapIcon {
   }
 
   get iconPath(): string {
-    return 'assets/datacenter.svg';
+    return 'assets/dataCenter.svg';
   }
 
   connect() {
-    this.lines = this.mapManager.datacenterIcons
+    this.lines = this.mapManager.dataCenterIcons
       .filter((dcI) => dcI != this)
       .map((dataCenterIcon) =>
         antPath(
@@ -193,7 +193,7 @@ export class DatacenterIcon extends MapIcon {
   }
 
   addNodeSpecificLines(): void {
-    this.powerLines = this.modelObject.powersources.map((powerSource) =>
+    this.powerLines = this.modelObject.powerSources.map((powerSource) =>
       antPath([powerSource.position, this.modelObject.position], {
         color: '#00AA00',
         interactive: false,
@@ -212,11 +212,11 @@ export class DatacenterIcon extends MapIcon {
   }
 }
 
-export class PowersourceIcon extends MapIcon {
-  declare modelObject: Powersource;
-  constructor(powersource: Powersource, mapManager: MapManager) {
+export class PowerSourceIcon extends MapIcon {
+  declare modelObject: PowerSource;
+  constructor(powerSource: PowerSource, mapManager: MapManager) {
     super(mapManager);
-    this.modelObject = powersource;
+    this.modelObject = powerSource;
     this.createOverlay();
   }
 
@@ -224,27 +224,27 @@ export class PowersourceIcon extends MapIcon {
     if (this.overlay) {
       this.overlay.on('click', (event) => {
         Leaf.DomEvent.stopPropagation(event);
-        if (this.mapManager.onPowersourcePressed)
-          this.mapManager.onPowersourcePressed(this.modelObject);
+        if (this.mapManager.onPowerSourcePressed)
+          this.mapManager.onPowerSourcePressed(this.modelObject);
       });
     }
   }
 
   get iconPath(): string {
     switch (this.modelObject.powerType) {
-      case PowersourceType.SUN: {
+      case PowerSourceType.SUN: {
         return 'assets/sun.svg';
       }
-      case PowersourceType.WIND: {
+      case PowerSourceType.WIND: {
         return 'assets/wind.svg';
       }
-      case PowersourceType.HYDRO: {
+      case PowerSourceType.HYDRO: {
         return 'assets/hydro.svg';
       }
-      case PowersourceType.THERMAL: {
+      case PowerSourceType.THERMAL: {
         return 'assets/hydro.svg';
       }
-      case PowersourceType.OTHER: {
+      case PowerSourceType.OTHER: {
         return 'assets/hydro.svg';
       }
     }
